@@ -2,7 +2,6 @@ package com.petsalud.backendpetsalud.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -21,7 +20,7 @@ public class JwtUtils {
         return Jwts.builder()
                 .subject(username)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 600000)) // 1hr
+                .expiration(new Date(System.currentTimeMillis() + 3600000)) // 1hr
                 .signWith(SECRET_KEY, Jwts.SIG.HS256)
                 .compact();
     }
