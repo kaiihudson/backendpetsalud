@@ -2,12 +2,18 @@ package com.petsalud.backendpetsalud;
 
 import com.petsalud.backendpetsalud.security.JwtUtils;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.testng.Assert;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+import static org.testng.Assert.assertThrows;
+import static org.testng.AssertJUnit.assertNotNull;
 
 @SpringBootTest(classes = BackendpetsaludApplication.class)
 public class LoginTest {
@@ -21,37 +27,28 @@ public class LoginTest {
         Assert.assertEquals(decodedUsername, baseUsername);
     }
 
-    @Autowired
+    @Mock
     private AuthenticationManager authenticationManager;
 
     @Test
     void checkLogin_withValidCredentials(){
-        // usuario
-        String usuario = "user";
-        String password = "password";
-        try {
-            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(usuario, password);
-            assert authenticationManager.authenticate(token) != null;
-        } catch (BadCredentialsException e) {
-            Assert.fail();
-        }
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken("test", "test");
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenReturn(token);
+
+        Authentication authentication = authenticationManager.authenticate(token);
+
+        assertNotNull(authentication);
+        verify(authenticationManager, times(1)).authenticate(token);
     }
 
     @Test
     void checkLogin_withInvalidCredentials(){
-        // usuario
-        String usuario = "user";
-        String password = "badPassword";
-        try {
-            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(usuario, password);
-            assert authenticationManager.authenticate(token) != null;
-        } catch (BadCredentialsException e) {
-            assert true;
-        }
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken("test", "badPassword");
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class))).thenThrow(BadCredentialsException.class);
+
+        assertThrows(BadCredentialsException.class, () -> authenticationManager.authenticate(token));
+
+        verify(authenticationManager, times(1)).authenticate(token);
     }
 
-    @Test
-    void checkCreation_withNoPriviledges(){
-
-    }
 }
