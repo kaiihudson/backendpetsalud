@@ -20,6 +20,7 @@ public class VentaController {
     public ResponseEntity<Venta> realizarVenta(
             @RequestParam Long usuarioId,
             @RequestBody List<Long> productosIds) {
+        System.out.println("IN");
         Venta nuevaVenta = ventaService.realizarVenta(usuarioId, productosIds);
         return ResponseEntity.ok(nuevaVenta);
     }

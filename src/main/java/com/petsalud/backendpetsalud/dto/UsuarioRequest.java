@@ -1,11 +1,13 @@
 package com.petsalud.backendpetsalud.dto;
 
+import org.springframework.lang.NonNull;
+
 public record UsuarioRequest(
-        String email,
-        String password,
-        String rol,
-        String nombre,
-        String apellido,
+        @NonNull String email,
+        @NonNull String password,
+        @NonNull String rol,
+        @NonNull String nombre,
+        @NonNull String apellido,
         String telefono,
-        String direccion) {
+        @NonNull String direccion) {
 }
