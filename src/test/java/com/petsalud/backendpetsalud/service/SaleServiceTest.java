@@ -220,6 +220,13 @@ public class SaleServiceTest {
             assertEquals(lambdaVenta.fecha(), venta1.getFecha());
         });
     }
+    // get specific sale with invalidId
+    @Test
+    public void getSale_withSpecificId_noSaleFound(){
+        when(ventaRepository.findById(1L)).thenReturn(Optional.empty());
+        Optional<VentaDTO> venta = ventaService.obtenerVentaPorId(1L);
+        assertNotNull(venta);
+    }
     // get sale with valid id
     // expects to return only the sale you asked for
     @Test
@@ -292,5 +299,12 @@ public class SaleServiceTest {
         List<VentaDTO> ventas = ventaService.listarVentasPorUsuario(1L);
         //As
         assertEquals(1, ventas.size());
+    }
+    //get sales try with user and no user is found
+    @Test
+    public void getSales_withSpecificUser_noSaleFound(){
+        when(ventaRepository.findByUsuarioId(any())).thenReturn(List.of());
+        List<VentaDTO> ventas = ventaService.listarVentasPorUsuario(1L);
+        assertEquals(0, ventas.size());
     }
 }

@@ -2,6 +2,7 @@ package com.petsalud.backendpetsalud.service;
 
 import com.petsalud.backendpetsalud.dto.MascotaDTO;
 import com.petsalud.backendpetsalud.dto.UsuarioDTO;
+import com.petsalud.backendpetsalud.entity.Mascota;
 import com.petsalud.backendpetsalud.entity.Usuario;
 import com.petsalud.backendpetsalud.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,29 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    private UsuarioDTO translateUserDTO(Usuario usuario) {
+        List<Mascota> mascotas = usuario.getMascotas();
+        List<MascotaDTO> mascotaDTOS = mascotas
+                .stream()
+                .map(mascota -> new MascotaDTO(
+                        mascota.getId(),
+                        mascota.getNombre(),
+                        mascota.getEspecie(),
+                        mascota.getRaza(),
+                        mascota.getSexo()
+                ))
+                .toList();
+        return new UsuarioDTO(
+                usuario.getId(),
+                usuario.getEmail(),
+                usuario.getNombre(),
+                usuario.getApellido(),
+                usuario.getTelefono(),
+                usuario.getDireccion(),
+                mascotaDTOS
+        );
+    }
 
     @Override
     public Usuario registrarUsuario(Usuario usuario) {
@@ -32,23 +56,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         Optional<Usuario> user =  usuarioRepository.findById(id);
         if (user.isPresent()) {
             Usuario usuario = user.get();
-            return Optional.of(new UsuarioDTO(
-                    usuario.getId(),
-                    usuario.getEmail(),
-                    usuario.getNombre(),
-                    usuario.getApellido(),
-                    usuario.getTelefono(),
-                    usuario.getDireccion(),
-                    usuario.getMascotas()
-                            .stream()
-                            .map(mascota -> new MascotaDTO(
-                                            mascota.getId(),
-                                            mascota.getNombre(),
-                                            mascota.getEspecie(),
-                                            mascota.getRaza(),
-                                            mascota.getSexo()
-                                    )
-                            ).toList()));
+            return Optional.of(translateUserDTO(usuario));
         } else {
             return Optional.empty();
         }
@@ -59,23 +67,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         Optional<Usuario> user =  usuarioRepository.findByEmail(email);
         if (user.isPresent()) {
             Usuario usuario = user.get();
-            return Optional.of(new UsuarioDTO(
-                    usuario.getId(),
-                    usuario.getEmail(),
-                    usuario.getNombre(),
-                    usuario.getApellido(),
-                    usuario.getTelefono(),
-                    usuario.getDireccion(),
-                    usuario.getMascotas()
-                            .stream()
-                            .map(mascota -> new MascotaDTO(
-                                            mascota.getId(),
-                                            mascota.getNombre(),
-                                            mascota.getEspecie(),
-                                            mascota.getRaza(),
-                                            mascota.getSexo()
-                                    )
-                            ).toList()));
+            return Optional.of(translateUserDTO(usuario));
         } else {
             return Optional.empty();
         }
@@ -90,23 +82,7 @@ public class UsuarioServiceImpl implements UsuarioService {
             usuario.setDireccion(usuarioActualizado.getDireccion());
             // No actualizar email ni password aquí por seguridad
             Usuario modifiedUser = usuarioRepository.save(usuario);
-            return new UsuarioDTO(
-                    modifiedUser.getId(),
-                    modifiedUser.getEmail(),
-                    modifiedUser.getNombre(),
-                    modifiedUser.getApellido(),
-                    modifiedUser.getTelefono(),
-                    modifiedUser.getDireccion(),
-                    modifiedUser.getMascotas()
-                            .stream()
-                            .map(mascota -> new MascotaDTO(
-                                            mascota.getId(),
-                                            mascota.getNombre(),
-                                            mascota.getEspecie(),
-                                            mascota.getRaza(),
-                                            mascota.getSexo()
-                                    )
-                            ).toList());
+            return translateUserDTO(modifiedUser);
         }).orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
     }
 
@@ -120,24 +96,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     public List<UsuarioDTO> listarUsuarios() {
         return usuarioRepository.findAll()
                 .stream()
-                .map(usuario -> new UsuarioDTO(
-                        usuario.getId(),
-                        usuario.getEmail(),
-                        usuario.getNombre(),
-                        usuario.getApellido(),
-                        usuario.getTelefono(),
-                        usuario.getDireccion(),
-                        usuario.getMascotas()
-                                .stream()
-                                .map(mascota -> new MascotaDTO(
-                                                mascota.getId(),
-                                                mascota.getNombre(),
-                                                mascota.getEspecie(),
-                                                mascota.getRaza(),
-                                                mascota.getSexo()
-                                        )
-                                ).toList()
-                ))
+                .map(this::translateUserDTO)
                 .toList();
     }
 }

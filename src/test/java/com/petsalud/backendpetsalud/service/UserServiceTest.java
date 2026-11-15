@@ -103,6 +103,13 @@ public class UserServiceTest {
             assertEquals(lambdaUser.direccion(), user.getDireccion());
         });
     }
+    // get a usuario, given its id, find no user
+    @Test
+    public void getUser_withID_findNothing(){
+        when(usuarioRepository.findById(any())).thenReturn(Optional.empty());
+        Optional<UsuarioDTO> responseUser = usuarioService.obtenerUsuarioPorId(1L);
+        assertNotNull(responseUser);
+    }
     // get a usuario, given its email
     @Test
     public void getUser_withEmail(){
@@ -127,6 +134,13 @@ public class UserServiceTest {
             assertEquals(lambdaUser.apellido(), user.getApellido());
             assertEquals(lambdaUser.direccion(), user.getDireccion());
         });
+    }
+    // get a usuario, given its email, find no user
+    @Test
+    public void getUser_withEmail_findNothing(){
+        when(usuarioRepository.findByEmail(any())).thenReturn(Optional.empty());
+        Optional<UsuarioDTO> responseUser = usuarioService.obtenerUsuarioPorEmail("testEmail");
+        assertNotNull(responseUser);
     }
     // modify a usuario, with a new usuario
     @Test

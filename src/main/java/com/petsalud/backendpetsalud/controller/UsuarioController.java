@@ -24,7 +24,7 @@ public class UsuarioController {
         this.usuarioService = usuarioService;
     }
 
-    private Usuario translateRequest(UsuarioRequest usuario) {
+    public Usuario translateRequest(UsuarioRequest usuario) {
         Usuario user = new Usuario();
         // translate dto
         user.setEmail(usuario.email());
@@ -36,6 +36,7 @@ public class UsuarioController {
         user.setDireccion(usuario.direccion());
         user.setRol(Rol.valueOf(usuario.rol().toUpperCase()));
         user.setMascotas(new ArrayList<>());
+        user.setVentas(new ArrayList<>());
         user.setNotificaciones(new ArrayList<>());
         user.setRecompensas(new ArrayList<>());
         return user;
@@ -43,15 +44,16 @@ public class UsuarioController {
 
     @PostMapping("/registro")
     public ResponseEntity<String> registrarUsuario(@RequestBody UsuarioRequest usuario) {
-        if (usuario.password().isEmpty() || usuario.email().isEmpty()) {
-            throw new IllegalArgumentException("Email/Contraseña no válido");
-        }
-        if (usuario.rol().equalsIgnoreCase("admin") || usuario.rol().equalsIgnoreCase("veterinario")) {
-            throw new IllegalArgumentException("Rol no permitido");
-        }
+
         try {
-            usuarioService.registrarUsuario(translateRequest(usuario));
-            return ResponseEntity.status(HttpStatus.CREATED).body("CREATED");
+            if (usuario.password().isEmpty() || usuario.email().isEmpty()) {
+                throw new IllegalArgumentException("Email/Contraseña no válido");
+            }
+            if (usuario.rol().equalsIgnoreCase("admin") || usuario.rol().equalsIgnoreCase("veterinario")) {
+                throw new IllegalArgumentException("Rol no permitido");
+            }
+                usuarioService.registrarUsuario(translateRequest(usuario));
+                return ResponseEntity.status(HttpStatus.CREATED).body("CREATED");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -60,10 +62,10 @@ public class UsuarioController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/admin")
     public ResponseEntity<String> registrarUsuarioAsAdmin(@RequestBody UsuarioRequest usuario) {
-        if (usuario.password().isEmpty() || usuario.email().isEmpty()) {
+        try {
+            if (usuario.password().isEmpty() || usuario.email().isEmpty()) {
             throw new IllegalArgumentException("Email/Contraseña no válido");
         }
-        try {
             usuarioService.registrarUsuario(translateRequest(usuario));
             return ResponseEntity.status(HttpStatus.CREATED).body("CREATED");
         } catch (IllegalArgumentException e) {
@@ -71,6 +73,7 @@ public class UsuarioController {
         }
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/detalle/{id}")
     public ResponseEntity<UsuarioDTO> obtenerUsuarioPorId(@PathVariable Long id) {
         return usuarioService.obtenerUsuarioPorId(id)
@@ -80,8 +83,8 @@ public class UsuarioController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/detalle/{id}")
-    public ResponseEntity<UsuarioDTO> actualizarUsuario(@PathVariable Long id, @RequestBody Usuario usuario) {
-        UsuarioDTO usuarioActualizado = usuarioService.actualizarUsuario(id, usuario);
+    public ResponseEntity<UsuarioDTO> actualizarUsuario(@PathVariable Long id, @RequestBody UsuarioRequest usuario) {
+        UsuarioDTO usuarioActualizado = usuarioService.actualizarUsuario(id, translateRequest(usuario));
         return ResponseEntity.ok(usuarioActualizado);
     }
 
