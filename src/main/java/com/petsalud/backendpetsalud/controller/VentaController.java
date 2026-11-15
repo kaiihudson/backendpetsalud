@@ -1,10 +1,9 @@
 package com.petsalud.backendpetsalud.controller;
 
-import com.petsalud.backendpetsalud.entity.Venta;
+import com.petsalud.backendpetsalud.dto.VentaDTO;
 import com.petsalud.backendpetsalud.service.VentaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -15,35 +14,30 @@ public class VentaController {
     @Autowired
     private VentaService ventaService;
 
-    @PreAuthorize("hasAnyRole('ADMIN','VETERINARIO')")
     @PostMapping
-    public ResponseEntity<Venta> realizarVenta(
+    public ResponseEntity<VentaDTO> realizarVenta(
             @RequestParam Long usuarioId,
             @RequestBody List<Long> productosIds) {
-        System.out.println("IN");
-        Venta nuevaVenta = ventaService.realizarVenta(usuarioId, productosIds);
+        VentaDTO nuevaVenta = ventaService.realizarVenta(usuarioId, productosIds);
         return ResponseEntity.ok(nuevaVenta);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','VETERINARIO')")
     @GetMapping("/{id}")
-    public ResponseEntity<Venta> obtenerVentaPorId(@PathVariable Long id) {
+    public ResponseEntity<VentaDTO> obtenerVentaPorId(@PathVariable Long id) {
         return ventaService.obtenerVentaPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','VETERINARIO')")
     @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<List<Venta>> listarVentasPorUsuario(@PathVariable Long usuarioId) {
-        List<Venta> ventas = ventaService.listarVentasPorUsuario(usuarioId);
+    public ResponseEntity<List<VentaDTO>> listarVentasPorUsuario(@PathVariable Long usuarioId) {
+        List<VentaDTO> ventas = ventaService.listarVentasPorUsuario(usuarioId);
         return ResponseEntity.ok(ventas);
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','VETERINARIO')")
     @GetMapping
-    public ResponseEntity<List<Venta>> listarTodasLasVentas() {
-        List<Venta> ventas = ventaService.listarTodasLasVentas();
+    public ResponseEntity<List<VentaDTO>> listarTodasLasVentas() {
+        List<VentaDTO> ventas = ventaService.listarTodasLasVentas();
         return ResponseEntity.ok(ventas);
     }
 }

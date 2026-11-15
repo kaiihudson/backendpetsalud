@@ -1,10 +1,12 @@
 package com.petsalud.backendpetsalud.service;
 
+import com.petsalud.backendpetsalud.dto.MascotaDTO;
+import com.petsalud.backendpetsalud.dto.UsuarioDTO;
 import com.petsalud.backendpetsalud.entity.Usuario;
 import com.petsalud.backendpetsalud.repository.UsuarioRepository;
-import com.petsalud.backendpetsalud.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,24 +28,85 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public Optional<Usuario> obtenerUsuarioPorId(Long id) {
-        return usuarioRepository.findById(id);
+    public Optional<UsuarioDTO> obtenerUsuarioPorId(Long id) {
+        Optional<Usuario> user =  usuarioRepository.findById(id);
+        if (user.isPresent()) {
+            Usuario usuario = user.get();
+            return Optional.of(new UsuarioDTO(
+                    usuario.getId(),
+                    usuario.getEmail(),
+                    usuario.getNombre(),
+                    usuario.getApellido(),
+                    usuario.getTelefono(),
+                    usuario.getDireccion(),
+                    usuario.getMascotas()
+                            .stream()
+                            .map(mascota -> new MascotaDTO(
+                                            mascota.getId(),
+                                            mascota.getNombre(),
+                                            mascota.getEspecie(),
+                                            mascota.getRaza(),
+                                            mascota.getSexo()
+                                    )
+                            ).toList()));
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
-    public Optional<Usuario> obtenerUsuarioPorEmail(String email) {
-        return usuarioRepository.findByEmail(email);
+    public Optional<UsuarioDTO> obtenerUsuarioPorEmail(String email) {
+        Optional<Usuario> user =  usuarioRepository.findByEmail(email);
+        if (user.isPresent()) {
+            Usuario usuario = user.get();
+            return Optional.of(new UsuarioDTO(
+                    usuario.getId(),
+                    usuario.getEmail(),
+                    usuario.getNombre(),
+                    usuario.getApellido(),
+                    usuario.getTelefono(),
+                    usuario.getDireccion(),
+                    usuario.getMascotas()
+                            .stream()
+                            .map(mascota -> new MascotaDTO(
+                                            mascota.getId(),
+                                            mascota.getNombre(),
+                                            mascota.getEspecie(),
+                                            mascota.getRaza(),
+                                            mascota.getSexo()
+                                    )
+                            ).toList()));
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
-    public Usuario actualizarUsuario(Long id, Usuario usuarioActualizado) {
+    public UsuarioDTO actualizarUsuario(Long id, Usuario usuarioActualizado) {
         return usuarioRepository.findById(id).map(usuario -> {
             usuario.setNombre(usuarioActualizado.getNombre());
             usuario.setApellido(usuarioActualizado.getApellido());
             usuario.setTelefono(usuarioActualizado.getTelefono());
             usuario.setDireccion(usuarioActualizado.getDireccion());
             // No actualizar email ni password aquí por seguridad
-            return usuarioRepository.save(usuario);
+            Usuario modifiedUser = usuarioRepository.save(usuario);
+            return new UsuarioDTO(
+                    modifiedUser.getId(),
+                    modifiedUser.getEmail(),
+                    modifiedUser.getNombre(),
+                    modifiedUser.getApellido(),
+                    modifiedUser.getTelefono(),
+                    modifiedUser.getDireccion(),
+                    modifiedUser.getMascotas()
+                            .stream()
+                            .map(mascota -> new MascotaDTO(
+                                            mascota.getId(),
+                                            mascota.getNombre(),
+                                            mascota.getEspecie(),
+                                            mascota.getRaza(),
+                                            mascota.getSexo()
+                                    )
+                            ).toList());
         }).orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
     }
 
@@ -53,7 +116,28 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public List<Usuario> listarUsuarios() {
-        return usuarioRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<UsuarioDTO> listarUsuarios() {
+        return usuarioRepository.findAll()
+                .stream()
+                .map(usuario -> new UsuarioDTO(
+                        usuario.getId(),
+                        usuario.getEmail(),
+                        usuario.getNombre(),
+                        usuario.getApellido(),
+                        usuario.getTelefono(),
+                        usuario.getDireccion(),
+                        usuario.getMascotas()
+                                .stream()
+                                .map(mascota -> new MascotaDTO(
+                                                mascota.getId(),
+                                                mascota.getNombre(),
+                                                mascota.getEspecie(),
+                                                mascota.getRaza(),
+                                                mascota.getSexo()
+                                        )
+                                ).toList()
+                ))
+                .toList();
     }
 }

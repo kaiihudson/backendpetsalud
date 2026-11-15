@@ -1,14 +1,15 @@
-package com.petsalud.backendpetsalud;
+package com.petsalud.backendpetsalud.service;
 
+import com.petsalud.backendpetsalud.dto.UsuarioDTO;
 import com.petsalud.backendpetsalud.entity.Rol;
 import com.petsalud.backendpetsalud.entity.Usuario;
 import com.petsalud.backendpetsalud.repository.UsuarioRepository;
-import com.petsalud.backendpetsalud.service.UsuarioServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -36,13 +37,13 @@ public class UserServiceTest {
                 .nombre("name")
                 .apellido("apellido")
                 .direccion("direccion")
+                .mascotas(new ArrayList<>())
                 .rol(Rol.CLIENTE)
                 .build();
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(user);
 
         usuarioService.registrarUsuario(user);
 
-        assertNull(user.getMascotas());
         assertNull(user.getRecompensas());
         assertNull(user.getNotificaciones());
     }
@@ -56,6 +57,7 @@ public class UserServiceTest {
                 .nombre("name")
                 .apellido("apellido")
                 .direccion("direccion")
+                .mascotas(new ArrayList<>())
                 .rol(Rol.CLIENTE)
                 .build();
         Usuario cloneUser = Usuario
@@ -65,6 +67,7 @@ public class UserServiceTest {
                 .nombre("name")
                 .apellido("apellido")
                 .direccion("direccion")
+                .mascotas(new ArrayList<>())
                 .rol(Rol.CLIENTE)
                 .build();
         when(usuarioRepository.findByEmail("testEmail")).thenReturn(Optional.of(user));
@@ -86,18 +89,18 @@ public class UserServiceTest {
                 .nombre("name")
                 .apellido("apellido")
                 .direccion("direccion")
+                .mascotas(new ArrayList<>())
                 .rol(Rol.CLIENTE)
                 .build();
         when(usuarioRepository.findById(any())).thenReturn(Optional.of(user));
-        Optional<Usuario> responseUser = usuarioService.obtenerUsuarioPorId(1L);
+        Optional<UsuarioDTO> responseUser = usuarioService.obtenerUsuarioPorId(1L);
         assertNotNull(responseUser);
         responseUser.ifPresent( lambdaUser -> {
-            assertEquals(lambdaUser.getId(), user.getId());
-            assertEquals(lambdaUser.getEmail(), user.getEmail());
-            assertEquals(lambdaUser.getNombre(), user.getNombre());
-            assertEquals(lambdaUser.getApellido(), user.getApellido());
-            assertEquals(lambdaUser.getDireccion(), user.getDireccion());
-            assertEquals(lambdaUser.getRol(), user.getRol());
+            assertEquals(lambdaUser.id(), user.getId());
+            assertEquals(lambdaUser.email(), user.getEmail());
+            assertEquals(lambdaUser.nombre(), user.getNombre());
+            assertEquals(lambdaUser.apellido(), user.getApellido());
+            assertEquals(lambdaUser.direccion(), user.getDireccion());
         });
     }
     // get a usuario, given its email
@@ -111,18 +114,18 @@ public class UserServiceTest {
                 .nombre("name")
                 .apellido("apellido")
                 .direccion("direccion")
+                .mascotas(new ArrayList<>())
                 .rol(Rol.CLIENTE)
                 .build();
         when(usuarioRepository.findByEmail(any())).thenReturn(Optional.of(user));
-        Optional<Usuario> responseUser = usuarioService.obtenerUsuarioPorEmail("testEmail");
+        Optional<UsuarioDTO> responseUser = usuarioService.obtenerUsuarioPorEmail("testEmail");
         assertNotNull(responseUser);
         responseUser.ifPresent( lambdaUser -> {
-            assertEquals(lambdaUser.getId(), user.getId());
-            assertEquals(lambdaUser.getEmail(), user.getEmail());
-            assertEquals(lambdaUser.getNombre(), user.getNombre());
-            assertEquals(lambdaUser.getApellido(), user.getApellido());
-            assertEquals(lambdaUser.getDireccion(), user.getDireccion());
-            assertEquals(lambdaUser.getRol(), user.getRol());
+            assertEquals(lambdaUser.id(), user.getId());
+            assertEquals(lambdaUser.email(), user.getEmail());
+            assertEquals(lambdaUser.nombre(), user.getNombre());
+            assertEquals(lambdaUser.apellido(), user.getApellido());
+            assertEquals(lambdaUser.direccion(), user.getDireccion());
         });
     }
     // modify a usuario, with a new usuario
@@ -136,6 +139,7 @@ public class UserServiceTest {
                 .nombre("name")
                 .apellido("apellido")
                 .direccion("direccion")
+                .mascotas(new ArrayList<>())
                 .rol(Rol.CLIENTE)
                 .build();
         Usuario newUser = Usuario
@@ -146,20 +150,20 @@ public class UserServiceTest {
                 .nombre("newName")
                 .apellido("newApellido")
                 .direccion("newDireccion")
+                .mascotas(new ArrayList<>())
                 .rol(Rol.CLIENTE)
                 .telefono("123456789")
                 .build();
         when(usuarioRepository.findById(any())).thenReturn(Optional.of(user));
         when(usuarioRepository.save(any(Usuario.class))).thenReturn(newUser);
-        Usuario responseUser = usuarioService.actualizarUsuario(1L, newUser);
+        UsuarioDTO responseUser = usuarioService.actualizarUsuario(1L, newUser);
         assertNotNull(responseUser);
-        assertEquals(responseUser.getId(), newUser.getId());
-        assertEquals(responseUser.getEmail(), newUser.getEmail());
-        assertEquals(responseUser.getNombre(), newUser.getNombre());
-        assertEquals(responseUser.getApellido(), newUser.getApellido());
-        assertEquals(responseUser.getDireccion(), newUser.getDireccion());
-        assertEquals(responseUser.getRol(), newUser.getRol());
-        assertEquals(responseUser.getTelefono(), newUser.getTelefono());
+        assertEquals(responseUser.id(), newUser.getId());
+        assertEquals(responseUser.email(), newUser.getEmail());
+        assertEquals(responseUser.nombre(), newUser.getNombre());
+        assertEquals(responseUser.apellido(), newUser.getApellido());
+        assertEquals(responseUser.direccion(), newUser.getDireccion());
+        assertEquals(responseUser.telefono(), newUser.getTelefono());
     }
     // modify a usuario, when usuario is invalid
     @Test
@@ -173,6 +177,7 @@ public class UserServiceTest {
                 .nombre("newName")
                 .apellido("newApellido")
                 .direccion("newDireccion")
+                .mascotas(new ArrayList<>())
                 .rol(Rol.CLIENTE)
                 .telefono("123456789")
                 .build();
@@ -202,6 +207,7 @@ public class UserServiceTest {
                 .nombre("name")
                 .apellido("apellido")
                 .direccion("direccion")
+                .mascotas(new ArrayList<>())
                 .rol(Rol.CLIENTE)
                 .build();
         Usuario user2 = Usuario
@@ -212,10 +218,11 @@ public class UserServiceTest {
                 .nombre("name")
                 .apellido("apellido")
                 .direccion("direccion")
+                .mascotas(new ArrayList<>())
                 .rol(Rol.CLIENTE)
                 .build();
         when(usuarioRepository.findAll()).thenReturn(Arrays.asList(user1, user2));
-        List<Usuario> usuarios = usuarioService.listarUsuarios();
+        List<UsuarioDTO> usuarios = usuarioService.listarUsuarios();
         assertEquals(2, usuarios.size());
     }
 }

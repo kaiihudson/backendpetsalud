@@ -1,5 +1,6 @@
 package com.petsalud.backendpetsalud.controller;
 
+import com.petsalud.backendpetsalud.dto.UsuarioDTO;
 import com.petsalud.backendpetsalud.dto.UsuarioRequest;
 import com.petsalud.backendpetsalud.entity.Rol;
 import com.petsalud.backendpetsalud.entity.Usuario;
@@ -10,6 +11,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -33,6 +35,9 @@ public class UsuarioController {
         user.setTelefono(usuario.telefono());
         user.setDireccion(usuario.direccion());
         user.setRol(Rol.valueOf(usuario.rol().toUpperCase()));
+        user.setMascotas(new ArrayList<>());
+        user.setNotificaciones(new ArrayList<>());
+        user.setRecompensas(new ArrayList<>());
         return user;
     }
 
@@ -67,7 +72,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/detalle/{id}")
-    public ResponseEntity<Usuario> obtenerUsuarioPorId(@PathVariable Long id) {
+    public ResponseEntity<UsuarioDTO> obtenerUsuarioPorId(@PathVariable Long id) {
         return usuarioService.obtenerUsuarioPorId(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -75,8 +80,8 @@ public class UsuarioController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/detalle/{id}")
-    public ResponseEntity<Usuario> actualizarUsuario(@PathVariable Long id, @RequestBody Usuario usuario) {
-        Usuario usuarioActualizado = usuarioService.actualizarUsuario(id, usuario);
+    public ResponseEntity<UsuarioDTO> actualizarUsuario(@PathVariable Long id, @RequestBody Usuario usuario) {
+        UsuarioDTO usuarioActualizado = usuarioService.actualizarUsuario(id, usuario);
         return ResponseEntity.ok(usuarioActualizado);
     }
 
@@ -87,10 +92,10 @@ public class UsuarioController {
         return ResponseEntity.noContent().build();
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN','VETERINARIO')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('VETERINARIO')")
     @GetMapping
-    public ResponseEntity<List<Usuario>> listarUsuarios() {
-        List<Usuario> usuarios = usuarioService.listarUsuarios();
+    public ResponseEntity<List<UsuarioDTO>> listarUsuarios() {
+        List<UsuarioDTO> usuarios = usuarioService.listarUsuarios();
         return ResponseEntity.ok(usuarios);
     }
 }

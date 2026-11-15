@@ -1,5 +1,6 @@
-package com.petsalud.backendpetsalud;
+package com.petsalud.backendpetsalud.service;
 
+import com.petsalud.backendpetsalud.dto.VentaDTO;
 import com.petsalud.backendpetsalud.entity.Producto;
 import com.petsalud.backendpetsalud.entity.Rol;
 import com.petsalud.backendpetsalud.entity.Usuario;
@@ -7,7 +8,6 @@ import com.petsalud.backendpetsalud.entity.Venta;
 import com.petsalud.backendpetsalud.repository.ProductoRepository;
 import com.petsalud.backendpetsalud.repository.UsuarioRepository;
 import com.petsalud.backendpetsalud.repository.VentaRepository;
-import com.petsalud.backendpetsalud.service.VentaServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,10 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static java.time.LocalDateTime.now;
 import static org.junit.jupiter.api.Assertions.*;
@@ -51,6 +48,7 @@ public class SaleServiceTest {
                 .nombre("someName")
                 .apellido("someLastName")
                 .direccion("someDireccion")
+                .mascotas(new ArrayList<>())
                 .rol(Rol.CLIENTE)
                 .build();
         Producto producto = new Producto()
@@ -67,14 +65,14 @@ public class SaleServiceTest {
         when(ventaRepository.save(any(Venta.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         //act
-        Venta newVenta = ventaService.realizarVenta(1L, Arrays.asList(producto.getId()));
+        VentaDTO newVenta = ventaService.realizarVenta(1L, Arrays.asList(producto.getId()));
 
         //assert
-        assertNotNull(newVenta.getUsuario().getId());
-        assertNotNull(newVenta.getUsuario().getEmail());
-        assertNotNull(newVenta.getUsuario().getNombre());
-        assertNotNull(newVenta.getUsuario().getApellido());
-        assertNotNull(newVenta.getUsuario().getDireccion());
+        assertNotNull(newVenta.usuario().id());
+        assertNotNull(newVenta.usuario().email());
+        assertNotNull(newVenta.usuario().nombre());
+        assertNotNull(newVenta.usuario().apellido());
+        assertNotNull(newVenta.usuario().direccion());
     }
     // create Sale with invalid user
     @Test
@@ -101,7 +99,7 @@ public class SaleServiceTest {
         when(usuarioRepository.findById(any())).thenReturn(Optional.empty());
         //act
         try {
-            Venta newVenta = ventaService.realizarVenta(1L, Arrays.asList(producto.getId()));
+            VentaDTO newVenta = ventaService.realizarVenta(1L, Arrays.asList(producto.getId()));
             //assert
             fail("encontro un usuario");
         } catch (IllegalArgumentException e){
@@ -169,6 +167,7 @@ public class SaleServiceTest {
         Usuario usuario = new Usuario().builder()
                 .id(1L)
                 .nombre("someUser")
+                .mascotas(new ArrayList<>())
                 .build();
         Producto producto1 = new Producto().builder()
                 .id(1L)
@@ -186,9 +185,9 @@ public class SaleServiceTest {
         when(usuarioRepository.findById(any(Long.class))).thenReturn(Optional.of(usuario));
         when(ventaRepository.save(any(Venta.class))).thenAnswer(invocation -> invocation.getArgument(0));
         // act
-        Venta venta = ventaService.realizarVenta(1L, Arrays.asList(producto1.getId(), producto2.getId()));
+        VentaDTO venta = ventaService.realizarVenta(1L, Arrays.asList(producto1.getId(), producto2.getId()));
         // assert
-        assertEquals(BigDecimal.valueOf(300L), venta.getTotal(), "El total debe corresponder a la suma de ambos productos");
+        assertEquals(BigDecimal.valueOf(300L), venta.total(), "El total debe corresponder a la suma de ambos productos");
     }
     // get specific
     @Test
@@ -196,6 +195,7 @@ public class SaleServiceTest {
         Usuario usuario1 = new Usuario().builder()
                 .id(1L)
                 .nombre("someUser")
+                .mascotas(new ArrayList<>())
                 .build();
         Producto producto1 = new Producto().builder()
                 .id(1L)
@@ -212,14 +212,12 @@ public class SaleServiceTest {
                 .productos(Arrays.asList(producto1))
                 .build();
         when(ventaRepository.findById(1L)).thenReturn(Optional.of(venta1));
-        Optional<Venta> venta = ventaService.obtenerVentaPorId(1L);
+        Optional<VentaDTO> venta = ventaService.obtenerVentaPorId(1L);
         assertNotNull(venta);
         venta.ifPresent(lambdaVenta -> {
-            assertEquals(lambdaVenta.getId(), venta1.getId());
-            assertEquals(lambdaVenta.getTotal(), venta1.getTotal());
-            assertEquals(lambdaVenta.getUsuario(), venta1.getUsuario());
-            assertEquals(lambdaVenta.getProductos(), venta1.getProductos());
-            assertEquals(lambdaVenta.getFecha(), venta1.getFecha());
+            assertEquals(lambdaVenta.id(), venta1.getId());
+            assertEquals(lambdaVenta.total(), venta1.getTotal());
+            assertEquals(lambdaVenta.fecha(), venta1.getFecha());
         });
     }
     // get sale with valid id
@@ -230,6 +228,7 @@ public class SaleServiceTest {
         Usuario usuario = new Usuario().builder()
                 .id(1L)
                 .nombre("someUser")
+                .mascotas(new ArrayList<>())
                 .build();
         Producto producto1 = new Producto().builder()
                 .id(1L)
@@ -247,7 +246,7 @@ public class SaleServiceTest {
                 .build();
         when(ventaRepository.findAll()).thenReturn(Collections.singletonList(venta));
         //Ac
-        List<Venta> ventas = ventaService.listarTodasLasVentas();
+        List<VentaDTO> ventas = ventaService.listarTodasLasVentas();
         //As
         assertEquals(1, ventas.size());
     }
@@ -258,6 +257,7 @@ public class SaleServiceTest {
         Usuario usuario1 = new Usuario().builder()
                 .id(1L)
                 .nombre("someUser")
+                .mascotas(new ArrayList<>())
                 .build();
         Usuario usuario2 = new Usuario().builder()
                 .id(2L)
@@ -289,7 +289,7 @@ public class SaleServiceTest {
         ventaRepository.save(venta2);
         when(ventaRepository.findByUsuarioId(any())).thenReturn(List.of(venta1));
         //Ac
-        List<Venta> ventas = ventaService.listarVentasPorUsuario(1L);
+        List<VentaDTO> ventas = ventaService.listarVentasPorUsuario(1L);
         //As
         assertEquals(1, ventas.size());
     }

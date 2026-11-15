@@ -1,12 +1,15 @@
 package com.petsalud.backendpetsalud.service;
 
+import com.petsalud.backendpetsalud.dto.MascotaDTO;
+import com.petsalud.backendpetsalud.dto.ProductoDTO;
+import com.petsalud.backendpetsalud.dto.UsuarioDTO;
+import com.petsalud.backendpetsalud.dto.VentaDTO;
 import com.petsalud.backendpetsalud.entity.Producto;
 import com.petsalud.backendpetsalud.entity.Usuario;
 import com.petsalud.backendpetsalud.entity.Venta;
 import com.petsalud.backendpetsalud.repository.ProductoRepository;
 import com.petsalud.backendpetsalud.repository.UsuarioRepository;
 import com.petsalud.backendpetsalud.repository.VentaRepository;
-import com.petsalud.backendpetsalud.service.VentaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +31,7 @@ public class VentaServiceImpl implements VentaService {
     private ProductoRepository productoRepository;
 
     @Override
-    public Venta realizarVenta(Long usuarioId, List<Long> productosIds) {
+    public VentaDTO realizarVenta(Long usuarioId, List<Long> productosIds) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
@@ -57,22 +60,164 @@ public class VentaServiceImpl implements VentaService {
                 .fecha(LocalDateTime.now())
                 .build();
 
-        return ventaRepository.save(venta);
+        Venta ventaRealizada = ventaRepository.save(venta);
+        return new VentaDTO(
+                ventaRealizada.getId(),
+                ventaRealizada.getFecha(),
+                ventaRealizada.getTotal(),
+                new UsuarioDTO(
+                        ventaRealizada.getUsuario().getId(),
+                        ventaRealizada.getUsuario().getEmail(),
+                        ventaRealizada.getUsuario().getNombre(),
+                        ventaRealizada.getUsuario().getApellido(),
+                        ventaRealizada.getUsuario().getTelefono(),
+                        ventaRealizada.getUsuario().getDireccion(),
+                        ventaRealizada.getUsuario().getMascotas()
+                                .stream()
+                                .map(mascota -> new MascotaDTO(
+                                                mascota.getId(),
+                                                mascota.getNombre(),
+                                                mascota.getEspecie(),
+                                                mascota.getRaza(),
+                                                mascota.getSexo()
+                                        )
+                                ).toList()),
+                ventaRealizada.getProductos()
+                        .stream()
+                        .map(producto -> new ProductoDTO(
+                                producto.getId(),
+                                producto.getNombre(),
+                                producto.getDescripcion(),
+                                producto.getPrecio(),
+                                producto.getStock(),
+                                producto.getCategoria()
+                        ))
+                        .toList()
+        );
     }
 
     @Override
-    public Optional<Venta> obtenerVentaPorId(Long id) {
-        return ventaRepository.findById(id);
+    public Optional<VentaDTO> obtenerVentaPorId(Long id) {
+        Optional<Venta> venta = ventaRepository.findById(id);
+        if (venta.isPresent()) {
+            Venta ventaFinal = venta.get();
+            return Optional.of(new VentaDTO(
+                    ventaFinal.getId(),
+                    ventaFinal.getFecha(),
+                    ventaFinal.getTotal(),
+                    new UsuarioDTO(
+                            ventaFinal.getUsuario().getId(),
+                            ventaFinal.getUsuario().getEmail(),
+                            ventaFinal.getUsuario().getNombre(),
+                            ventaFinal.getUsuario().getApellido(),
+                            ventaFinal.getUsuario().getTelefono(),
+                            ventaFinal.getUsuario().getDireccion(),
+                            ventaFinal.getUsuario().getMascotas()
+                                    .stream()
+                                    .map(mascota -> new MascotaDTO(
+                                                    mascota.getId(),
+                                                    mascota.getNombre(),
+                                                    mascota.getEspecie(),
+                                                    mascota.getRaza(),
+                                                    mascota.getSexo()
+                                            )
+                                    ).toList()),
+                    ventaFinal.getProductos()
+                            .stream()
+                            .map(producto -> new ProductoDTO(
+                                    producto.getId(),
+                                    producto.getNombre(),
+                                    producto.getDescripcion(),
+                                    producto.getPrecio(),
+                                    producto.getStock(),
+                                    producto.getCategoria()
+                            ))
+                            .toList()
+            ));
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
-    public List<Venta> listarVentasPorUsuario(Long usuarioId) {
-        return ventaRepository.findByUsuarioId(usuarioId);
+    public List<VentaDTO> listarVentasPorUsuario(Long usuarioId) {
+        List<Venta> ventas = ventaRepository.findByUsuarioId(usuarioId);
+        return ventas
+                .stream()
+                .map(venta -> new VentaDTO(
+                        venta.getId(),
+                        venta.getFecha(),
+                        venta.getTotal(),
+                        new UsuarioDTO(
+                                venta.getUsuario().getId(),
+                                venta.getUsuario().getEmail(),
+                                venta.getUsuario().getNombre(),
+                                venta.getUsuario().getApellido(),
+                                venta.getUsuario().getTelefono(),
+                                venta.getUsuario().getDireccion(),
+                                venta.getUsuario().getMascotas()
+                                        .stream()
+                                        .map(mascota -> new MascotaDTO(
+                                                        mascota.getId(),
+                                                        mascota.getNombre(),
+                                                        mascota.getEspecie(),
+                                                        mascota.getRaza(),
+                                                        mascota.getSexo()
+                                                )
+                                        ).toList()),
+                        venta.getProductos()
+                                .stream()
+                                .map(producto -> new ProductoDTO(
+                                        producto.getId(),
+                                        producto.getNombre(),
+                                        producto.getDescripcion(),
+                                        producto.getPrecio(),
+                                        producto.getStock(),
+                                        producto.getCategoria()
+                                ))
+                                .toList()
+                ))
+                .toList();
     }
 
     @Override
-    public List<Venta> listarTodasLasVentas() {
-        return ventaRepository.findAll();
+    public List<VentaDTO> listarTodasLasVentas() {
+        return ventaRepository.findAll()
+                .stream()
+                .map(venta -> new VentaDTO(
+                        venta.getId(),
+                        venta.getFecha(),
+                        venta.getTotal(),
+                        new UsuarioDTO(
+                                venta.getUsuario().getId(),
+                                venta.getUsuario().getEmail(),
+                                venta.getUsuario().getNombre(),
+                                venta.getUsuario().getApellido(),
+                                venta.getUsuario().getTelefono(),
+                                venta.getUsuario().getDireccion(),
+                                venta.getUsuario().getMascotas()
+                                        .stream()
+                                        .map(mascota -> new MascotaDTO(
+                                                        mascota.getId(),
+                                                        mascota.getNombre(),
+                                                        mascota.getEspecie(),
+                                                        mascota.getRaza(),
+                                                        mascota.getSexo()
+                                                )
+                                        ).toList()),
+                        venta.getProductos()
+                                .stream()
+                                .map(producto -> new ProductoDTO(
+                                        producto.getId(),
+                                        producto.getNombre(),
+                                        producto.getDescripcion(),
+                                        producto.getPrecio(),
+                                        producto.getStock(),
+                                        producto.getCategoria()
+                                ))
+                                .toList()
+                ))
+                .toList();
     }
 }
 

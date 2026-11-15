@@ -1,6 +1,5 @@
 package com.petsalud.backendpetsalud.security;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -16,23 +15,18 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 
 @Configuration
-@EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private JwtAuthFilter jwtAuthFilter;
-
-    @Autowired
-    private UsuarioDetailsService usuarioDetailsService;
-
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthFilter jwtAuthFilter) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeRequests(auth -> auth
                         .requestMatchers("/api/login", "/api/usuarios/registro").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/api/ventas").hasAnyRole("ADMIN", "VETERINARIO")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
@@ -48,10 +42,6 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         AuthenticationManagerBuilder builder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        builder.inMemoryAuthentication()
-                .withUser("user")
-                .password(passwordEncoder().encode("password"))
-                .roles("USER");
         return builder.build();
     }
 }
