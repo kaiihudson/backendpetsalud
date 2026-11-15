@@ -51,7 +51,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             } catch (JwtException | IllegalArgumentException | UsernameNotFoundException ex) {
                 SecurityContextHolder.clearContext();
             }
-            filterChain.doFilter(request, response);
         }
+        filterChain.doFilter(request, response);
     }
 }

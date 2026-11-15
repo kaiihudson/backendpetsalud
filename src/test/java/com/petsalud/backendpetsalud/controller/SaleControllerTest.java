@@ -4,16 +4,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.petsalud.backendpetsalud.dto.ProductoDTO;
 import com.petsalud.backendpetsalud.dto.UsuarioDTO;
 import com.petsalud.backendpetsalud.dto.VentaDTO;
-import com.petsalud.backendpetsalud.security.JwtAuthFilter;
+
+import com.petsalud.backendpetsalud.security.JwtUtils;
+import com.petsalud.backendpetsalud.security.SecurityConfig;
 import com.petsalud.backendpetsalud.service.VentaService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -27,8 +31,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(VentaController.class)
-@AutoConfigureMockMvc(addFilters = false)
+@Import(SecurityConfig.class)
 public class SaleControllerTest {
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Autowired
     private MockMvc mockMvc;
@@ -37,10 +44,11 @@ public class SaleControllerTest {
     private VentaService ventaService;
 
     @MockBean
-    private JwtAuthFilter jwtAuthFilter;
+    private JwtUtils jwtUtils;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @MockBean
+    private UserDetailsService userDetailsService;
+
 
     @Test
     @WithMockUser(username = "admin", roles = "ADMIN")
@@ -83,6 +91,8 @@ public class SaleControllerTest {
         );
         when(ventaService.realizarVenta(usuarioId, productosId))
                 .thenReturn(ventaEsperada);
+
+
         mockMvc.perform(post("/api/ventas")
                         .with(csrf())
                         .param("usuarioId", usuarioId.toString())
@@ -95,5 +105,23 @@ public class SaleControllerTest {
 
         verify(ventaService, times(1))
                 .realizarVenta(usuarioId, productosId);
+    }
+
+    @Test
+    @WithMockUser(username = "cliente", roles = "CLIENTE")
+    public void makeSale_returnNoSale() throws Exception{
+
+        Long usuarioId= 1L;
+        List<Long> productosId = List.of(1L, 2L);
+
+        mockMvc.perform(post("/api/ventas")
+                        .with(csrf())
+                        .param("usuarioId", usuarioId.toString())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(productosId))
+                )
+                .andExpect(status().isForbidden());
+
+        verify(ventaService, never()).realizarVenta(usuarioId, productosId);
     }
 }
