@@ -2,11 +2,11 @@ package com.petsalud.backendpetsalud.service;
 
 import com.petsalud.backendpetsalud.entity.Cita;
 import com.petsalud.backendpetsalud.entity.Mascota;
+import com.petsalud.backendpetsalud.entity.Rol;
 import com.petsalud.backendpetsalud.entity.Usuario;
 import com.petsalud.backendpetsalud.repository.CitaRepository;
 import com.petsalud.backendpetsalud.repository.MascotaRepository;
 import com.petsalud.backendpetsalud.repository.UsuarioRepository;
-import com.petsalud.backendpetsalud.service.CitaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +28,8 @@ public class CitaServiceImpl implements CitaService {
 
     @Override
     public Cita agendarCita(Long mascotaId, Long veterinarioId, LocalDateTime fechaHora, String motivo) {
+        // TODO: verificar horario maximo de cita, se asumen 45 minutos
+        long appointmentDuration = 45;
         Mascota mascota = mascotaRepository.findById(mascotaId)
                 .orElseThrow(() -> new IllegalArgumentException("Mascota no encontrada"));
 
@@ -35,6 +37,28 @@ public class CitaServiceImpl implements CitaService {
                 .orElseThrow(() -> new IllegalArgumentException("Veterinario no encontrado"));
 
         // Opcional: Verificar disponibilidad del veterinario en ese horario
+        if (veterinario.getRol() != Rol.VETERINARIO) {
+            throw new IllegalArgumentException("Usuario no es veterinario");
+        }
+        // verificar disponibilidad
+        LocalDateTime finalFechaHora = fechaHora.plusMinutes(appointmentDuration);
+        List<Cita> citas = citaRepository.getAllByVeterinarioIdOrderByFechaHoraAsc(veterinario.getId());
+        boolean valid = true;
+        for (Cita current: citas) {
+            LocalDateTime currentFechaHora = current.getFechaHora();
+            LocalDateTime finCurrentFechaHora = finalFechaHora.plusMinutes(appointmentDuration);
+
+            boolean hasBlock = !fechaHora.isAfter(finCurrentFechaHora) &&
+                    !finalFechaHora.isBefore(currentFechaHora);
+
+            if (hasBlock) {
+                valid = false;
+                break;
+            }
+        }
+        if (!valid) {
+            throw new IllegalArgumentException("Hora no valida");
+        }
 
         Cita cita = Cita.builder()
                 .mascota(mascota)

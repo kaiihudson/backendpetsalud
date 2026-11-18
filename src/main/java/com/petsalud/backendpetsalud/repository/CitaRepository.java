@@ -12,4 +12,6 @@ public interface CitaRepository extends JpaRepository<Cita, Long> {
     List<Cita> findByMascotaId(Long mascotaId);
     List<Cita> findByVeterinarioId(Long veterinarioId);
     List<Cita> findByFechaHoraBetween(LocalDateTime inicio, LocalDateTime fin);
+
+    List<Cita> getAllByVeterinarioIdOrderByFechaHoraAsc(Long id);
 }
