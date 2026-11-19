@@ -1,9 +1,6 @@
 package com.petsalud.backendpetsalud.service;
 
-import com.petsalud.backendpetsalud.entity.Cita;
-import com.petsalud.backendpetsalud.entity.Mascota;
-import com.petsalud.backendpetsalud.entity.Rol;
-import com.petsalud.backendpetsalud.entity.Usuario;
+import com.petsalud.backendpetsalud.entity.*;
 import com.petsalud.backendpetsalud.repository.CitaRepository;
 import com.petsalud.backendpetsalud.repository.MascotaRepository;
 import com.petsalud.backendpetsalud.repository.UsuarioRepository;
@@ -71,7 +68,7 @@ public class AppointmentServiceTest {
         Cita cita = new Cita().builder()
                 .id(1L)
                 .fechaHora(fecha)
-                .estado("Agendada")
+                .estado(AppointmentStatus.AGENDADA)
                 .motivo(motivo)
                 .mascota(mascota)
                 .veterinario(veterinario)
@@ -83,6 +80,21 @@ public class AppointmentServiceTest {
         Cita citaFromService = citaService.agendarCita(mascotaId, veterinarioId, fecha, motivo);
 
         assertEquals(cita, citaFromService);
+    }
+    @Test
+    public void agendarCita_timeIsBeforeNow(){
+        Long mascotaId = 1L;
+        Long veterinarioId = 1L;
+        LocalDateTime fechaHora = LocalDateTime.now().minusHours(1);
+        String motivo = "someMotive";
+
+        try {
+            citaService.agendarCita(mascotaId, veterinarioId, fechaHora, motivo);
+        } catch (IllegalArgumentException e) {
+            assertEquals("La cita no puede ocurrir en un tiempo ya pasado", e.getMessage());
+        }
+
+
     }
     @Test
     public void agendarCita_mascotaDoesNotExist(){
@@ -173,7 +185,7 @@ public class AppointmentServiceTest {
         Cita citaPrevia = new Cita().builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now().plusMinutes(30))
-                .estado("Agendada")
+                .estado(AppointmentStatus.AGENDADA)
                 .motivo(motivo)
                 .mascota(mascota)
                 .veterinario(veterinario)
@@ -221,7 +233,7 @@ public class AppointmentServiceTest {
         Cita citaPrevia = new Cita().builder()
                 .id(1L)
                 .fechaHora(fecha)
-                .estado("Agendada")
+                .estado(AppointmentStatus.AGENDADA)
                 .motivo(motivo)
                 .mascota(mascota)
                 .veterinario(veterinario)
@@ -269,7 +281,7 @@ public class AppointmentServiceTest {
         Cita citaPrevia = new Cita().builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
-                .estado("Agendada")
+                .estado(AppointmentStatus.AGENDADA)
                 .motivo(motivo)
                 .mascota(mascota)
                 .veterinario(veterinario)
@@ -317,7 +329,7 @@ public class AppointmentServiceTest {
         Cita citaPrevia = new Cita().builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
-                .estado("Agendada")
+                .estado(AppointmentStatus.AGENDADA)
                 .motivo(motivo)
                 .mascota(mascota)
                 .veterinario(veterinario)
@@ -365,7 +377,7 @@ public class AppointmentServiceTest {
         Cita citaPrevia = new Cita().builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
-                .estado("Agendada")
+                .estado(AppointmentStatus.AGENDADA)
                 .motivo(motivo)
                 .mascota(mascota)
                 .veterinario(veterinario)
@@ -373,7 +385,7 @@ public class AppointmentServiceTest {
         Cita citaPrevia2 = new Cita().builder()
                 .id(2L)
                 .fechaHora(LocalDateTime.now().plusHours(1))
-                .estado("Agendada")
+                .estado(AppointmentStatus.AGENDADA)
                 .motivo(motivo)
                 .mascota(mascota)
                 .veterinario(veterinario)
@@ -395,7 +407,7 @@ public class AppointmentServiceTest {
         Cita cita = new Cita().builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
-                .estado("someEstado")
+                .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(new Mascota())
                 .veterinario(new Usuario().builder().rol(Rol.VETERINARIO).build())
@@ -430,17 +442,17 @@ public class AppointmentServiceTest {
         Cita cita = new Cita().builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
-                .estado("someEstado")
+                .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(new Mascota())
                 .veterinario(new Usuario().builder().rol(Rol.VETERINARIO).build())
                 .build();
         long idCita = 1L;
-        String nuevoEstado = "newEstado";
+        String nuevoEstado = "completa";
         Cita newCita = new Cita().builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
-                .estado(nuevoEstado)
+                .estado(AppointmentStatus.COMPLETA)
                 .motivo("someMotive")
                 .mascota(new Mascota())
                 .veterinario(new Usuario().builder().rol(Rol.VETERINARIO).build())
@@ -450,7 +462,7 @@ public class AppointmentServiceTest {
 
         try {
             Cita citaFromService = citaService.actualizarEstadoCita(idCita, nuevoEstado);
-            assertEquals(nuevoEstado, citaFromService.getEstado());
+            assertEquals(AppointmentStatus.valueOf(nuevoEstado.toUpperCase()), citaFromService.getEstado());
             verify(citaRepository, times(1)).findById(1L);
         } catch (IllegalArgumentException e) {
             fail();
@@ -460,7 +472,7 @@ public class AppointmentServiceTest {
     @Test
     public void putCita_withInvalidId(){
         long idCita = 1L;
-        String nuevoEstado = "newEstado";
+        String nuevoEstado = "completa";
         when(citaRepository.findById(any())).thenReturn(Optional.empty());
 
         try {
@@ -468,6 +480,28 @@ public class AppointmentServiceTest {
             fail();
         } catch (IllegalArgumentException e){
             assertEquals("Cita no encontrada", e.getMessage() );
+        }
+
+    }
+    @Test
+    public void putCita_withInvalidStatus(){
+        Cita cita = new Cita().builder()
+                .id(1L)
+                .fechaHora(LocalDateTime.now())
+                .estado(AppointmentStatus.AGENDADA)
+                .motivo("someMotive")
+                .mascota(new Mascota())
+                .veterinario(new Usuario().builder().rol(Rol.VETERINARIO).build())
+                .build();
+        long idCita = 1L;
+        when(citaRepository.findById(any())).thenReturn(Optional.of(cita));
+        String nuevoEstado = "newEstado";
+
+        try {
+            citaService.actualizarEstadoCita(idCita, nuevoEstado);
+            fail();
+        } catch (IllegalArgumentException e){
+            assertEquals("Estado no valido", e.getMessage() );
         }
 
     }
@@ -484,7 +518,7 @@ public class AppointmentServiceTest {
         Cita cita1 = new Cita().builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
-                .estado("someEstado")
+                .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(new Mascota().builder().id(1L).build())
                 .veterinario(new Usuario().builder().rol(Rol.VETERINARIO).build())
@@ -492,7 +526,7 @@ public class AppointmentServiceTest {
         Cita cita2 = new Cita().builder()
                 .id(2L)
                 .fechaHora(LocalDateTime.now().plusDays(31))
-                .estado("someEstado")
+                .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(new Mascota().builder().id(1L).build())
                 .veterinario(new Usuario().builder().rol(Rol.VETERINARIO).build())
@@ -520,7 +554,7 @@ public class AppointmentServiceTest {
         Cita cita1 = new Cita().builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
-                .estado("someEstado")
+                .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(new Mascota())
                 .veterinario(new Usuario().builder().id(1L).rol(Rol.VETERINARIO).build())
@@ -528,7 +562,7 @@ public class AppointmentServiceTest {
         Cita cita2 = new Cita().builder()
                 .id(2L)
                 .fechaHora(LocalDateTime.now().plusDays(31))
-                .estado("someEstado")
+                .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(new Mascota())
                 .veterinario(new Usuario().builder().id(1L).rol(Rol.VETERINARIO).build())
@@ -559,7 +593,7 @@ public class AppointmentServiceTest {
         Cita cita = new Cita().builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
-                .estado("someEstado")
+                .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(new Mascota())
                 .veterinario(new Usuario().builder().rol(Rol.VETERINARIO).build())

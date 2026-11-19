@@ -23,7 +23,7 @@ public class Cita {
 
     private LocalDateTime fechaHora;
 
-    private String estado; // Ejemplos: "Agendada", "Cancelada", "Completada"
+    private AppointmentStatus estado;
 
     private String motivo;
 

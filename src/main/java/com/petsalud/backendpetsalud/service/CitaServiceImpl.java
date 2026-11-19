@@ -1,9 +1,6 @@
 package com.petsalud.backendpetsalud.service;
 
-import com.petsalud.backendpetsalud.entity.Cita;
-import com.petsalud.backendpetsalud.entity.Mascota;
-import com.petsalud.backendpetsalud.entity.Rol;
-import com.petsalud.backendpetsalud.entity.Usuario;
+import com.petsalud.backendpetsalud.entity.*;
 import com.petsalud.backendpetsalud.repository.CitaRepository;
 import com.petsalud.backendpetsalud.repository.MascotaRepository;
 import com.petsalud.backendpetsalud.repository.UsuarioRepository;
@@ -26,9 +23,19 @@ public class CitaServiceImpl implements CitaService {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    public boolean checkAvailability(LocalDateTime target, LocalDateTime checker, long duration) {
+        LocalDateTime targetEnding = target.plusMinutes(duration);
+        LocalDateTime checkEnding = checker.plusMinutes(duration);
+
+        return  !checker.isAfter(targetEnding) && !checkEnding.isBefore(target);
+    }
+
     @Override
     public Cita agendarCita(Long mascotaId, Long veterinarioId, LocalDateTime fechaHora, String motivo) {
-        // TODO: verificar horario maximo de cita, se asumen 45 minutos
+        if (fechaHora.isBefore(LocalDateTime.now().minusMinutes(1))) {
+            throw new IllegalArgumentException("La cita no puede ocurrir en un tiempo ya pasado");
+        }
+        // TODO: verificar horario maximo de cita, se asumen 45 minutos, queda configurable
         long appointmentDuration = 45;
         Mascota mascota = mascotaRepository.findById(mascotaId)
                 .orElseThrow(() -> new IllegalArgumentException("Mascota no encontrada"));
@@ -45,13 +52,7 @@ public class CitaServiceImpl implements CitaService {
         List<Cita> citas = citaRepository.getAllByVeterinarioIdOrderByFechaHoraAsc(veterinario.getId());
         boolean valid = true;
         for (Cita current: citas) {
-            LocalDateTime currentFechaHora = current.getFechaHora();
-            LocalDateTime finCurrentFechaHora = finalFechaHora.plusMinutes(appointmentDuration);
-
-            boolean hasBlock = !fechaHora.isAfter(finCurrentFechaHora) &&
-                    !finalFechaHora.isBefore(currentFechaHora);
-
-            if (hasBlock) {
+            if (checkAvailability(current.getFechaHora(), fechaHora, appointmentDuration)) {
                 valid = false;
                 break;
             }
@@ -65,7 +66,7 @@ public class CitaServiceImpl implements CitaService {
                 .veterinario(veterinario)
                 .fechaHora(fechaHora)
                 .motivo(motivo)
-                .estado("Agendada")
+                .estado(AppointmentStatus.AGENDADA)
                 .build();
 
         return citaRepository.save(cita);
@@ -79,14 +80,24 @@ public class CitaServiceImpl implements CitaService {
     @Override
     public Cita actualizarEstadoCita(Long id, String nuevoEstado) {
         return citaRepository.findById(id).map(cita -> {
-            cita.setEstado(nuevoEstado);
+            try {
+                cita.setEstado(AppointmentStatus.valueOf(nuevoEstado.toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Estado no valido");
+            }
             return citaRepository.save(cita);
         }).orElseThrow(() -> new IllegalArgumentException("Cita no encontrada"));
     }
 
     @Override
     public void cancelarCita(Long id) {
-        citaRepository.deleteById(id);
+        Optional<Cita> citaReq = citaRepository.findById(id);
+        if (citaReq.isPresent()) {
+            actualizarEstadoCita(id, "cancelada");
+        } else {
+            throw new IllegalArgumentException("Cita no encontrada");
+        }
+//        citaRepository.deleteById(id);
     }
 
     @Override

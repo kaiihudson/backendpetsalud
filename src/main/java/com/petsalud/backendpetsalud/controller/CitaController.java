@@ -1,5 +1,6 @@
 package com.petsalud.backendpetsalud.controller;
 
+import com.petsalud.backendpetsalud.dto.CitaDto;
 import com.petsalud.backendpetsalud.entity.Cita;
 import com.petsalud.backendpetsalud.service.CitaService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,29 +17,45 @@ public class CitaController {
     @Autowired
     private CitaService citaService;
 
+    private CitaDto translateToDTO(Cita cita) {
+        return new CitaDto(
+                cita.getId(),
+                cita.getFechaHora().toString(),
+                cita.getEstado().name(),
+                cita.getMotivo(),
+                cita.getMascota().getNombre(),
+                cita.getVeterinario().getNombre()
+        );
+    }
+
     @PostMapping
-    public ResponseEntity<Cita> agendarCita(
+    public ResponseEntity<CitaDto> agendarCita(
             @RequestParam Long mascotaId,
             @RequestParam Long veterinarioId,
             @RequestParam String fechaHora, // Formato ISO 8601
             @RequestParam String motivo) {
         LocalDateTime fechaHoraParsed = LocalDateTime.parse(fechaHora);
-        Cita nuevaCita = citaService.agendarCita(mascotaId, veterinarioId, fechaHoraParsed, motivo);
-        return ResponseEntity.ok(nuevaCita);
+        try {
+            Cita nuevaCita = citaService.agendarCita(mascotaId, veterinarioId, fechaHoraParsed, motivo);
+            return ResponseEntity.ok(translateToDTO(nuevaCita));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().build();
+        }
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Cita> obtenerCitaPorId(@PathVariable Long id) {
+    public ResponseEntity<CitaDto> obtenerCitaPorId(@PathVariable Long id) {
         return citaService.obtenerCitaPorId(id)
+                .map(this::translateToDTO)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PreAuthorize("hasAnyRole('ADMIN','VETERINARIO')")
     @PutMapping("/{id}/estado")
-    public ResponseEntity<Cita> actualizarEstadoCita(@PathVariable Long id, @RequestParam String estado) {
+    public ResponseEntity<CitaDto> actualizarEstadoCita(@PathVariable Long id, @RequestParam String estado) {
         Cita citaActualizada = citaService.actualizarEstadoCita(id, estado);
-        return ResponseEntity.ok(citaActualizada);
+        return ResponseEntity.ok(translateToDTO(citaActualizada));
     }
 
     @DeleteMapping("/{id}")
