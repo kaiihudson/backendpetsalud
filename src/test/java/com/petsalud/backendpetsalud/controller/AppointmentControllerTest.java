@@ -49,8 +49,10 @@ public class AppointmentControllerTest {
         String motivo = "someMotivo";
 
         Mascota mascota = new Mascota();
-        Usuario usuario = new Usuario().builder().rol(Rol.VETERINARIO).build();
-        Cita cita =  new Cita().builder()
+        new Usuario();
+        Usuario usuario = Usuario.builder().rol(Rol.VETERINARIO).build();
+        new Cita();
+        Cita cita =  Cita.builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
                 .estado(AppointmentStatus.AGENDADA)

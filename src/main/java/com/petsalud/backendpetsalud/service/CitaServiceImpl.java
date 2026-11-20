@@ -48,10 +48,10 @@ public class CitaServiceImpl implements CitaService {
             throw new IllegalArgumentException("Usuario no es veterinario");
         }
         // verificar disponibilidad
-        LocalDateTime finalFechaHora = fechaHora.plusMinutes(appointmentDuration);
         List<Cita> citas = citaRepository.getAllByVeterinarioIdOrderByFechaHoraAsc(veterinario.getId());
         boolean valid = true;
         for (Cita current: citas) {
+            if (current.getEstado() == AppointmentStatus.CANCELADA){continue;}
             if (checkAvailability(current.getFechaHora(), fechaHora, appointmentDuration)) {
                 valid = false;
                 break;
@@ -93,7 +93,7 @@ public class CitaServiceImpl implements CitaService {
     public void cancelarCita(Long id) {
         Optional<Cita> citaReq = citaRepository.findById(id);
         if (citaReq.isPresent()) {
-            actualizarEstadoCita(id, "cancelada");
+            citaReq.get().setEstado(AppointmentStatus.CANCELADA);
         } else {
             throw new IllegalArgumentException("Cita no encontrada");
         }

@@ -1,6 +1,7 @@
 package com.petsalud.backendpetsalud;
 
 import com.petsalud.backendpetsalud.security.JwtUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,10 +11,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.testng.Assert;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.testng.Assert.assertThrows;
-import static org.testng.AssertJUnit.assertNotNull;
 
 @SpringBootTest(classes = BackendpetsaludApplication.class)
 public class LoginTest {
@@ -37,7 +36,7 @@ public class LoginTest {
 
         Authentication authentication = authenticationManager.authenticate(token);
 
-        assertNotNull(authentication);
+        Assertions.assertNotNull(authentication);
         verify(authenticationManager, times(1)).authenticate(token);
     }
 

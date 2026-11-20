@@ -40,7 +40,8 @@ public class SaleServiceTest {
     @Test
     public void createSale_checkUser() {
         //arrange
-        Usuario user = new Usuario()
+        new Usuario();
+        Usuario user = Usuario
                 .builder()
                 .id(1L)
                 .email("someEmail")
@@ -51,7 +52,8 @@ public class SaleServiceTest {
                 .mascotas(new ArrayList<>())
                 .rol(Rol.CLIENTE)
                 .build();
-        Producto producto = new Producto()
+        new Producto();
+        Producto producto = Producto
                 .builder()
                 .id(1L)
                 .nombre("someName")
@@ -60,12 +62,12 @@ public class SaleServiceTest {
                 .stock(1).
                 categoria("someCategory").
                 build();
-        when(productoRepository.findAllById(any(List.class))).thenReturn(Collections.singletonList(producto));
+        when(productoRepository.findAllById(any())).thenReturn(Collections.singletonList(producto));
         when(usuarioRepository.findById(any())).thenReturn(Optional.of(user));
         when(ventaRepository.save(any(Venta.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         //act
-        VentaDTO newVenta = ventaService.realizarVenta(1L, Arrays.asList(producto.getId()));
+        VentaDTO newVenta = ventaService.realizarVenta(1L, Collections.singletonList(producto.getId()));
 
         //assert
         assertNotNull(newVenta.usuario().id());
@@ -78,16 +80,9 @@ public class SaleServiceTest {
     @Test
     public void createSale_checkInvalidUser(){
         //arrange
-        Usuario user = new Usuario()
-                .builder()
-                .id(1L)
-                .email("someEmail")
-                .password("somePassword")
-                .apellido("someLastName")
-                .direccion("someDireccion")
-                .rol(Rol.CLIENTE)
-                .build();
-        Producto producto = new Producto()
+        new Usuario();
+        new Producto();
+        Producto producto = Producto
                 .builder()
                 .id(1L)
                 .nombre("someName")
@@ -99,7 +94,7 @@ public class SaleServiceTest {
         when(usuarioRepository.findById(any())).thenReturn(Optional.empty());
         //act
         try {
-            VentaDTO newVenta = ventaService.realizarVenta(1L, Arrays.asList(producto.getId()));
+            ventaService.realizarVenta(1L, Collections.singletonList(producto.getId()));
             //assert
             fail("encontro un usuario");
         } catch (IllegalArgumentException e){
@@ -112,11 +107,13 @@ public class SaleServiceTest {
     @Test
     public void createSale_withInvalidProducts(){
         //Arr
-        Usuario usuario = new Usuario().builder()
+        new Usuario();
+        Usuario usuario = Usuario.builder()
                 .id(1L)
                 .nombre("someUser")
                 .build();
-        Producto producto1 = new Producto().builder()
+        new Producto();
+        Producto producto1 = Producto.builder()
                 .id(1L)
                 .nombre("someProduct")
                 .categoria("someCategoria")
@@ -138,22 +135,24 @@ public class SaleServiceTest {
     @Test
     public void createSale_withInvalidStock(){
         // arrange
-        Usuario usuario = new Usuario().builder()
+        new Usuario();
+        Usuario usuario = Usuario.builder()
                 .id(1L)
                 .nombre("someUser")
                 .build();
-        Producto producto1 = new Producto().builder()
+        new Producto();
+        Producto producto1 = Producto.builder()
                 .id(1L)
                 .nombre("someProduct")
                 .categoria("someCategoria")
                 .precio(BigDecimal.valueOf(100L))
                 .stock(0).build();
-        when(productoRepository.findAllById(any(List.class))).thenReturn(Arrays.asList(producto1));
+        when(productoRepository.findAllById(any())).thenReturn(Collections.singletonList(producto1));
         when(usuarioRepository.findById(any(Long.class))).thenReturn(Optional.of(usuario));
 
         try {
             // act
-            ventaService.realizarVenta(1L, Arrays.asList(producto1.getId()));
+            ventaService.realizarVenta(1L, Collections.singletonList(producto1.getId()));
             // assert
             fail("La venta fue hecha");
         } catch (IllegalArgumentException e) {
@@ -164,26 +163,29 @@ public class SaleServiceTest {
     @Test
     public void createSale_andCheckTotal(){
         // arrange
-        Usuario usuario = new Usuario().builder()
+        new Usuario();
+        Usuario usuario = Usuario.builder()
                 .id(1L)
                 .nombre("someUser")
                 .mascotas(new ArrayList<>())
                 .build();
-        Producto producto1 = new Producto().builder()
+        new Producto();
+        Producto producto1 = Producto.builder()
                 .id(1L)
                 .nombre("someProduct")
                 .categoria("someCategoria")
                 .precio(BigDecimal.valueOf(100L))
                 .stock(1).build();
-        Producto producto2 = new Producto().builder()
+        new Producto();
+        Producto producto2 = Producto.builder()
                 .id(2L)
                 .nombre("someProduct")
                 .categoria("someCategoria")
                 .precio(BigDecimal.valueOf(200L))
                 .stock(1).build();
-        when(productoRepository.findAllById(any(List.class))).thenReturn(Arrays.asList(producto1, producto2));
-        when(usuarioRepository.findById(any(Long.class))).thenReturn(Optional.of(usuario));
-        when(ventaRepository.save(any(Venta.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(productoRepository.findAllById(any())).thenReturn(Arrays.asList(producto1, producto2));
+        when(usuarioRepository.findById(any())).thenReturn(Optional.of(usuario));
+        when(ventaRepository.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
         // act
         VentaDTO venta = ventaService.realizarVenta(1L, Arrays.asList(producto1.getId(), producto2.getId()));
         // assert
@@ -192,24 +194,27 @@ public class SaleServiceTest {
     // get specific
     @Test
     public void getSale_withSpecificId(){
-        Usuario usuario1 = new Usuario().builder()
+        new Usuario();
+        Usuario usuario1 = Usuario.builder()
                 .id(1L)
                 .nombre("someUser")
                 .mascotas(new ArrayList<>())
                 .build();
-        Producto producto1 = new Producto().builder()
+        new Producto();
+        Producto producto1 = Producto.builder()
                 .id(1L)
                 .nombre("someProduct")
                 .categoria("someCategoria")
                 .precio(BigDecimal.valueOf(200L))
                 .stock(1).build();
-        Venta venta1 = new Venta()
+        new Venta();
+        Venta venta1 = Venta
                 .builder()
                 .id(1L)
                 .fecha(now())
                 .total(BigDecimal.valueOf(200L))
                 .usuario(usuario1)
-                .productos(Arrays.asList(producto1))
+                .productos(Collections.singletonList(producto1))
                 .build();
         when(ventaRepository.findById(1L)).thenReturn(Optional.of(venta1));
         Optional<VentaDTO> venta = ventaService.obtenerVentaPorId(1L);
@@ -232,18 +237,21 @@ public class SaleServiceTest {
     @Test
     public void getSale_withValidId(){
         //Arr
-        Usuario usuario = new Usuario().builder()
+        new Usuario();
+        Usuario usuario = Usuario.builder()
                 .id(1L)
                 .nombre("someUser")
                 .mascotas(new ArrayList<>())
                 .build();
-        Producto producto1 = new Producto().builder()
+        new Producto();
+        Producto producto1 = Producto.builder()
                 .id(1L)
                 .nombre("someProduct")
                 .categoria("someCategoria")
                 .precio(BigDecimal.valueOf(200L))
                 .stock(1).build();
-        Venta venta = new Venta()
+        new Venta();
+        Venta venta = Venta
                 .builder()
                 .id(1L)
                 .fecha(now())
@@ -261,36 +269,37 @@ public class SaleServiceTest {
     @Test
     public void getSales_WithSpecicicUser(){
         //Arr
-        Usuario usuario1 = new Usuario().builder()
+        new Usuario();
+        Usuario usuario1 = Usuario.builder()
                 .id(1L)
                 .nombre("someUser")
                 .mascotas(new ArrayList<>())
                 .build();
-        Usuario usuario2 = new Usuario().builder()
-                .id(2L)
-                .nombre("someUser")
-                .build();
-        Producto producto1 = new Producto().builder()
+        new Usuario();
+        new Producto();
+        Producto producto1 = Producto.builder()
                 .id(1L)
                 .nombre("someProduct")
                 .categoria("someCategoria")
                 .precio(BigDecimal.valueOf(200L))
                 .stock(1).build();
-        Venta venta1 = new Venta()
+        new Venta();
+        Venta venta1 = Venta
                 .builder()
                 .id(1L)
                 .fecha(now())
                 .total(BigDecimal.valueOf(200L))
                 .usuario(usuario1)
-                .productos(Arrays.asList(producto1))
+                .productos(Collections.singletonList(producto1))
                 .build();
-        Venta venta2 = new Venta()
+        new Venta();
+        Venta venta2 = Venta
                 .builder()
                 .id(1L)
                 .fecha(now())
                 .total(BigDecimal.valueOf(200L))
                 .usuario(usuario1)
-                .productos(Arrays.asList(producto1))
+                .productos(Collections.singletonList(producto1))
                 .build();
         ventaRepository.save(venta1);
         ventaRepository.save(venta2);

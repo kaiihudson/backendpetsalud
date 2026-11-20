@@ -43,7 +43,8 @@ public class AppointmentServiceTest {
         LocalDateTime fecha= LocalDateTime.now();
         String motivo = "someMotive";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
-        Mascota mascota = new Mascota().builder()
+        new Mascota();
+        Mascota mascota = Mascota.builder()
                 .id(1L)
                 .nombre("somePetName")
                 .especie("somePetSpecies")
@@ -53,7 +54,8 @@ public class AppointmentServiceTest {
                 .citas(new ArrayList<>())
                 .expedientesMedicos(new ArrayList<>())
                 .build();
-        Usuario veterinario = new Usuario().builder()
+        new Usuario();
+        Usuario veterinario = Usuario.builder()
                 .id(2L)
                 .email("someOtherEmail")
                 .password("somePassword")
@@ -65,7 +67,8 @@ public class AppointmentServiceTest {
                 .recompensas(new ArrayList<>())
                 .notificaciones(new ArrayList<>())
                 .build();
-        Cita cita = new Cita().builder()
+        new Cita();
+        Cita cita = Cita.builder()
                 .id(1L)
                 .fechaHora(fecha)
                 .estado(AppointmentStatus.AGENDADA)
@@ -115,7 +118,8 @@ public class AppointmentServiceTest {
     @Test
     public void agendarCita_veterinarioDoesNotExist(){
         Long mascotaId = 1L;
-        Mascota mascota = new Mascota().builder()
+        new Mascota();
+        Mascota mascota = Mascota.builder()
                 .id(1L)
                 .nombre("someNombre")
                 .build();
@@ -133,12 +137,14 @@ public class AppointmentServiceTest {
     @Test
     public void agendarCita_veterinarioDoesExist_IsInvalid(){
         Long mascotaId = 1L;
-        Mascota mascota = new Mascota().builder()
+        new Mascota();
+        Mascota mascota = Mascota.builder()
                 .id(mascotaId)
                 .nombre("someNombre")
                 .build();
         Long veterinarioId = 1L;
-        Usuario usuario = new Usuario().builder()
+        new Usuario();
+        Usuario usuario = Usuario.builder()
                 .id(1L)
                 .nombre("someNombre")
                 .rol(Rol.CLIENTE)
@@ -160,7 +166,8 @@ public class AppointmentServiceTest {
         LocalDateTime fecha= LocalDateTime.now();
         String motivo = "someMotive";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
-        Mascota mascota = new Mascota().builder()
+        new Mascota();
+        Mascota mascota = Mascota.builder()
                 .id(1L)
                 .nombre("somePetName")
                 .especie("somePetSpecies")
@@ -170,7 +177,8 @@ public class AppointmentServiceTest {
                 .citas(new ArrayList<>())
                 .expedientesMedicos(new ArrayList<>())
                 .build();
-        Usuario veterinario = new Usuario().builder()
+        new Usuario();
+        Usuario veterinario = Usuario.builder()
                 .id(2L)
                 .email("someOtherEmail")
                 .password("somePassword")
@@ -182,7 +190,8 @@ public class AppointmentServiceTest {
                 .recompensas(new ArrayList<>())
                 .notificaciones(new ArrayList<>())
                 .build();
-        Cita citaPrevia = new Cita().builder()
+        new Cita();
+        Cita citaPrevia = Cita.builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now().plusMinutes(30))
                 .estado(AppointmentStatus.AGENDADA)
@@ -208,7 +217,8 @@ public class AppointmentServiceTest {
         LocalDateTime fecha= LocalDateTime.now();
         String motivo = "someMotive";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
-        Mascota mascota = new Mascota().builder()
+        new Mascota();
+        Mascota mascota = Mascota.builder()
                 .id(1L)
                 .nombre("somePetName")
                 .especie("somePetSpecies")
@@ -218,7 +228,8 @@ public class AppointmentServiceTest {
                 .citas(new ArrayList<>())
                 .expedientesMedicos(new ArrayList<>())
                 .build();
-        Usuario veterinario = new Usuario().builder()
+        new Usuario();
+        Usuario veterinario = Usuario.builder()
                 .id(2L)
                 .email("someOtherEmail")
                 .password("somePassword")
@@ -230,7 +241,8 @@ public class AppointmentServiceTest {
                 .recompensas(new ArrayList<>())
                 .notificaciones(new ArrayList<>())
                 .build();
-        Cita citaPrevia = new Cita().builder()
+        new Cita();
+        Cita citaPrevia = Cita.builder()
                 .id(1L)
                 .fechaHora(fecha)
                 .estado(AppointmentStatus.AGENDADA)
@@ -256,7 +268,8 @@ public class AppointmentServiceTest {
         LocalDateTime fecha= LocalDateTime.now().plusMinutes(1);
         String motivo = "someMotive";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
-        Mascota mascota = new Mascota().builder()
+        new Mascota();
+        Mascota mascota = Mascota.builder()
                 .id(1L)
                 .nombre("somePetName")
                 .especie("somePetSpecies")
@@ -266,7 +279,8 @@ public class AppointmentServiceTest {
                 .citas(new ArrayList<>())
                 .expedientesMedicos(new ArrayList<>())
                 .build();
-        Usuario veterinario = new Usuario().builder()
+        new Usuario();
+        Usuario veterinario = Usuario.builder()
                 .id(2L)
                 .email("someOtherEmail")
                 .password("somePassword")
@@ -278,7 +292,8 @@ public class AppointmentServiceTest {
                 .recompensas(new ArrayList<>())
                 .notificaciones(new ArrayList<>())
                 .build();
-        Cita citaPrevia = new Cita().builder()
+        new Cita();
+        Cita citaPrevia = Cita.builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
                 .estado(AppointmentStatus.AGENDADA)
@@ -304,7 +319,8 @@ public class AppointmentServiceTest {
         LocalDateTime fecha= LocalDateTime.now().plusMinutes(45);
         String motivo = "someMotive";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
-        Mascota mascota = new Mascota().builder()
+        new Mascota();
+        Mascota mascota = Mascota.builder()
                 .id(1L)
                 .nombre("somePetName")
                 .especie("somePetSpecies")
@@ -314,7 +330,8 @@ public class AppointmentServiceTest {
                 .citas(new ArrayList<>())
                 .expedientesMedicos(new ArrayList<>())
                 .build();
-        Usuario veterinario = new Usuario().builder()
+        new Usuario();
+        Usuario veterinario = Usuario.builder()
                 .id(2L)
                 .email("someOtherEmail")
                 .password("somePassword")
@@ -326,7 +343,8 @@ public class AppointmentServiceTest {
                 .recompensas(new ArrayList<>())
                 .notificaciones(new ArrayList<>())
                 .build();
-        Cita citaPrevia = new Cita().builder()
+        new Cita();
+        Cita citaPrevia = Cita.builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
                 .estado(AppointmentStatus.AGENDADA)
@@ -352,7 +370,8 @@ public class AppointmentServiceTest {
         LocalDateTime fecha= LocalDateTime.now().plusMinutes(50);
         String motivo = "someMotive";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
-        Mascota mascota = new Mascota().builder()
+        new Mascota();
+        Mascota mascota = Mascota.builder()
                 .id(1L)
                 .nombre("somePetName")
                 .especie("somePetSpecies")
@@ -362,7 +381,8 @@ public class AppointmentServiceTest {
                 .citas(new ArrayList<>())
                 .expedientesMedicos(new ArrayList<>())
                 .build();
-        Usuario veterinario = new Usuario().builder()
+        new Usuario();
+        Usuario veterinario = Usuario.builder()
                 .id(2L)
                 .email("someOtherEmail")
                 .password("somePassword")
@@ -374,7 +394,8 @@ public class AppointmentServiceTest {
                 .recompensas(new ArrayList<>())
                 .notificaciones(new ArrayList<>())
                 .build();
-        Cita citaPrevia = new Cita().builder()
+        new Cita();
+        Cita citaPrevia = Cita.builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
                 .estado(AppointmentStatus.AGENDADA)
@@ -382,7 +403,8 @@ public class AppointmentServiceTest {
                 .mascota(mascota)
                 .veterinario(veterinario)
                 .build();
-        Cita citaPrevia2 = new Cita().builder()
+        new Cita();
+        Cita citaPrevia2 = Cita.builder()
                 .id(2L)
                 .fechaHora(LocalDateTime.now().plusHours(1))
                 .estado(AppointmentStatus.AGENDADA)
@@ -401,16 +423,81 @@ public class AppointmentServiceTest {
         }
 
     }
+    @Test
+    public void agendarCita_withPartialOverlap_overlapIsCANCELADA_success(){
+
+        Long mascotaId  = 1L;
+        Long veterinarioId = 2L;
+        LocalDateTime fecha= LocalDateTime.now().plusMinutes(50);
+        String motivo = "someMotive";
+        // TODO: verify mascota controller and usuario handling to prevent infinite recursion
+        new Mascota();
+        Mascota mascota = Mascota.builder()
+                .id(1L)
+                .nombre("somePetName")
+                .especie("somePetSpecies")
+                .raza("somePetRace")
+                .fechaNacimiento(LocalDate.of(2020, 6, 6))
+                .sexo("M")
+                .citas(new ArrayList<>())
+                .expedientesMedicos(new ArrayList<>())
+                .build();
+        new Usuario();
+        Usuario veterinario = Usuario.builder()
+                .id(2L)
+                .email("someOtherEmail")
+                .password("somePassword")
+                .nombre("someName")
+                .apellido("someLastName")
+                .rol(Rol.VETERINARIO)
+                .mascotas(List.of(mascota))
+                .ventas(new ArrayList<>())
+                .recompensas(new ArrayList<>())
+                .notificaciones(new ArrayList<>())
+                .build();
+        new Cita();
+        Cita citaPrevia = Cita.builder()
+                .id(1L)
+                .fechaHora(LocalDateTime.now())
+                .estado(AppointmentStatus.AGENDADA)
+                .motivo(motivo)
+                .mascota(mascota)
+                .veterinario(veterinario)
+                .build();
+        new Cita();
+        Cita citaPrevia2 = Cita.builder()
+                .id(2L)
+                .fechaHora(LocalDateTime.now().plusHours(1))
+                .estado(AppointmentStatus.CANCELADA)
+                .motivo(motivo)
+                .mascota(mascota)
+                .veterinario(veterinario)
+                .build();
+        when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
+        when(usuarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
+        when(citaRepository.getAllByVeterinarioIdOrderByFechaHoraAsc(2L)).thenReturn(List.of(citaPrevia, citaPrevia2));
+        try {
+            citaService.agendarCita(mascotaId, veterinarioId, fecha, motivo);
+            //TODO: do this
+            assert true;
+        } catch (IllegalArgumentException e){
+            fail();
+        }
+
+
+    }
 
     @Test
     public void getCita_withValidId(){
-        Cita cita = new Cita().builder()
+        new Usuario();
+        new Cita();
+        Cita cita = Cita.builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(new Mascota())
-                .veterinario(new Usuario().builder().rol(Rol.VETERINARIO).build())
+                .veterinario(Usuario.builder().rol(Rol.VETERINARIO).build())
                 .build();
         when(citaRepository.findById(any())).thenReturn(Optional.of(cita));
 
@@ -428,7 +515,7 @@ public class AppointmentServiceTest {
 
         when(citaRepository.findById(any())).thenReturn(Optional.empty());
 
-        Optional<Cita> citaFromService = citaService.obtenerCitaPorId(1L);
+        Optional<Cita> citaFromService = citaService.obtenerCitaPorId(idCita);
 
         if (citaFromService.isPresent()) {
             fail();
@@ -439,23 +526,27 @@ public class AppointmentServiceTest {
 
     @Test
     public void putCita_withValidId(){
-        Cita cita = new Cita().builder()
+        new Usuario();
+        new Cita();
+        Cita cita = Cita.builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(new Mascota())
-                .veterinario(new Usuario().builder().rol(Rol.VETERINARIO).build())
+                .veterinario(Usuario.builder().rol(Rol.VETERINARIO).build())
                 .build();
         long idCita = 1L;
         String nuevoEstado = "completa";
-        Cita newCita = new Cita().builder()
+        new Usuario();
+        new Cita();
+        Cita newCita = Cita.builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
                 .estado(AppointmentStatus.COMPLETA)
                 .motivo("someMotive")
                 .mascota(new Mascota())
-                .veterinario(new Usuario().builder().rol(Rol.VETERINARIO).build())
+                .veterinario(Usuario.builder().rol(Rol.VETERINARIO).build())
                 .build();
         when(citaRepository.findById(any())).thenReturn(Optional.of(cita));
         when(citaRepository.save(any())).thenReturn(newCita);
@@ -485,13 +576,15 @@ public class AppointmentServiceTest {
     }
     @Test
     public void putCita_withInvalidStatus(){
-        Cita cita = new Cita().builder()
+        new Usuario();
+        new Cita();
+        Cita cita = Cita.builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(new Mascota())
-                .veterinario(new Usuario().builder().rol(Rol.VETERINARIO).build())
+                .veterinario(Usuario.builder().rol(Rol.VETERINARIO).build())
                 .build();
         long idCita = 1L;
         when(citaRepository.findById(any())).thenReturn(Optional.of(cita));
@@ -507,29 +600,59 @@ public class AppointmentServiceTest {
     }
 
     @Test
-    public void cancelarCita(){
+    public void cancelarCita_successful(){
         long idUsuario = 1L;
-        citaService.cancelarCita(idUsuario);
-        verify(citaRepository, times(1)).deleteById(idUsuario);
+        new Usuario();
+        new Cita();
+        Cita cita = Cita.builder()
+                .id(1L)
+                .fechaHora(LocalDateTime.now())
+                .estado(AppointmentStatus.AGENDADA)
+                .motivo("someMotivo")
+                .mascota(new Mascota())
+                .veterinario(Usuario.builder().rol(Rol.VETERINARIO).build())
+                .build();
+        when(citaRepository.findById(any())).thenReturn(Optional.of(cita));
+        try {
+            citaService.cancelarCita(idUsuario);
+        } catch (IllegalArgumentException e) {
+            fail();
+        }
+    }
+    @Test
+    public void cancelarCita_failed(){
+        long idUsuario = 1L;
+        try {
+            citaService.cancelarCita(idUsuario);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals("Cita no encontrada", e.getMessage() );
+        }
     }
 
     @Test
     public void getCitas_withValidMascotaId(){
-        Cita cita1 = new Cita().builder()
+        new Usuario();
+        new Mascota();
+        new Cita();
+        Cita cita1 = Cita.builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
-                .mascota(new Mascota().builder().id(1L).build())
-                .veterinario(new Usuario().builder().rol(Rol.VETERINARIO).build())
+                .mascota(Mascota.builder().id(1L).build())
+                .veterinario(Usuario.builder().rol(Rol.VETERINARIO).build())
                 .build();
-        Cita cita2 = new Cita().builder()
+        new Usuario();
+        new Mascota();
+        new Cita();
+        Cita cita2 = Cita.builder()
                 .id(2L)
                 .fechaHora(LocalDateTime.now().plusDays(31))
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
-                .mascota(new Mascota().builder().id(1L).build())
-                .veterinario(new Usuario().builder().rol(Rol.VETERINARIO).build())
+                .mascota(Mascota.builder().id(1L).build())
+                .veterinario(Usuario.builder().rol(Rol.VETERINARIO).build())
                 .build();
         long idMascota = 1L;
         when(citaRepository.findByMascotaId(idMascota)).thenReturn(List.of(cita1, cita2));
@@ -551,21 +674,25 @@ public class AppointmentServiceTest {
 
     @Test
     public void getCitas_withValidVeterinarioId(){
-        Cita cita1 = new Cita().builder()
+        new Usuario();
+        new Cita();
+        Cita cita1 = Cita.builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(new Mascota())
-                .veterinario(new Usuario().builder().id(1L).rol(Rol.VETERINARIO).build())
+                .veterinario(Usuario.builder().id(1L).rol(Rol.VETERINARIO).build())
                 .build();
-        Cita cita2 = new Cita().builder()
+        new Usuario();
+        new Cita();
+        Cita cita2 = Cita.builder()
                 .id(2L)
                 .fechaHora(LocalDateTime.now().plusDays(31))
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(new Mascota())
-                .veterinario(new Usuario().builder().id(1L).rol(Rol.VETERINARIO).build())
+                .veterinario(Usuario.builder().id(1L).rol(Rol.VETERINARIO).build())
                 .build();
         long idVeterinario = 1L;
         when(citaRepository.findByVeterinarioId(idVeterinario)).thenReturn(List.of(cita1, cita2));
@@ -590,13 +717,15 @@ public class AppointmentServiceTest {
     public void getCitas_withDate(){
         LocalDateTime inicio = LocalDateTime.now().minusDays(1);
         LocalDateTime fin = LocalDateTime.now().plusDays(1);
-        Cita cita = new Cita().builder()
+        new Usuario();
+        new Cita();
+        Cita cita = Cita.builder()
                 .id(1L)
                 .fechaHora(LocalDateTime.now())
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(new Mascota())
-                .veterinario(new Usuario().builder().rol(Rol.VETERINARIO).build())
+                .veterinario(Usuario.builder().rol(Rol.VETERINARIO).build())
                 .build();
         when(citaRepository.findByFechaHoraBetween(inicio, fin)).thenReturn(List.of(cita));
 
