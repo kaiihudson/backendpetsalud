@@ -54,8 +54,13 @@ public class CitaController {
     @PreAuthorize("hasAnyRole('ADMIN','VETERINARIO')")
     @PutMapping("/{id}/estado")
     public ResponseEntity<CitaDto> actualizarEstadoCita(@PathVariable Long id, @RequestParam String estado) {
-        Cita citaActualizada = citaService.actualizarEstadoCita(id, estado);
-        return ResponseEntity.ok(translateToDTO(citaActualizada));
+        try {
+            Cita citaActualizada = citaService.actualizarEstadoCita(id, estado);
+            return ResponseEntity.ok(translateToDTO(citaActualizada));
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().build();
+        }
+
     }
 
     @DeleteMapping("/{id}")

@@ -30,5 +30,9 @@ public class Producto {
     private Integer stock;
 
     private String categoria;
+
+    @ManyToOne
+    @JoinColumn(name = "proveedor_id")
+    private Proveedor proveedor;
 }
 

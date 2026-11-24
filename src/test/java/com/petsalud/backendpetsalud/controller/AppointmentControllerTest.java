@@ -1,6 +1,7 @@
 package com.petsalud.backendpetsalud.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.petsalud.backendpetsalud.dto.CitaDto;
 import com.petsalud.backendpetsalud.entity.*;
 import com.petsalud.backendpetsalud.security.JwtUtils;
 import com.petsalud.backendpetsalud.security.SecurityConfig;
@@ -15,18 +16,18 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(CitaController.class)
 @Import(SecurityConfig.class)
 public class AppointmentControllerTest {
-    @Autowired
-    private ObjectMapper objectMapper;
 
     @Autowired
     private MockMvc mockMvc;
@@ -91,13 +92,120 @@ public class AppointmentControllerTest {
                 .andExpect(status().is4xxClientError());
     }
     @Test
-    public void getAppointment_valid() throws Exception {}
+    @WithMockUser
+    public void getAppointment_valid() throws Exception {
+        String motivo = "someMotivo";
+        new Mascota();
+        Mascota mascota = Mascota.builder()
+                .id(1L)
+                .nombre("someNombreMascota")
+                .build();
+
+        new Usuario();
+        Usuario usuario = Usuario.builder()
+                .nombre("someNombreVeterinario")
+                .rol(Rol.VETERINARIO)
+                .build();
+        new Cita();
+        Cita cita =  Cita.builder()
+                .id(1L)
+                .fechaHora(LocalDateTime.now())
+                .estado(AppointmentStatus.AGENDADA)
+                .motivo(motivo)
+                .mascota(mascota)
+                .veterinario(usuario)
+                .build();
+        Long citaId = 1L;
+        when(citaService.obtenerCitaPorId(any())).thenReturn(Optional.of(cita));
+        mockMvc.perform(
+                        get("/api/citas/{id}", citaId)
+                                .with(csrf())
+                                .param("appointmentId", citaId.toString())
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("AGENDADA"))
+                .andExpect(jsonPath("$.nombreMascota").value("someNombreMascota"));
+    }
     @Test
-    public void getAppointment_invalid() throws Exception {}
+    @WithMockUser
+    public void getAppointment_invalid() throws Exception {
+        Long citaId = 1L;
+        when(citaService.obtenerCitaPorId(any())).thenReturn(Optional.empty());
+        mockMvc.perform(
+                        get("/api/citas/{id}", citaId)
+                                .with(csrf())
+                )
+                .andExpect(status().is4xxClientError());
+    }
     @Test
-    public void putAppointment_valid() throws Exception {}
+    @WithMockUser(roles = "ADMIN")
+    public void putAppointment_valid() throws Exception {
+        String motivo = "someMotivo";
+        new Mascota();
+        Mascota mascota = Mascota.builder()
+                .id(1L)
+                .nombre("someNombreMascota")
+                .build();
+        new Usuario();
+        Usuario usuario = Usuario.builder()
+                .nombre("someNombreVeterinario")
+                .rol(Rol.VETERINARIO)
+                .build();
+        new Cita();
+        Cita cita =  Cita.builder()
+                .id(1L)
+                .fechaHora(LocalDateTime.now())
+                .estado(AppointmentStatus.COMPLETA)
+                .motivo(motivo)
+                .mascota(mascota)
+                .veterinario(usuario)
+                .build();
+
+        Long citaId = 1L;
+        when(citaService.actualizarEstadoCita(any(), any())).thenReturn(cita);
+        mockMvc.perform(
+                        put("/api/citas/{id}/estado", citaId)
+                                .with(csrf())
+                                .param("estado", "COMPLETA")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.estado").value("COMPLETA"))
+                .andExpect(jsonPath("$.nombreMascota").value("someNombreMascota"));
+    }
     @Test
-    public void putAppointment_invalid() throws Exception {}
+    @WithMockUser(roles = "ADMIN")
+    public void putAppointment_invalid() throws Exception {
+
+        String motivo = "someMotivo";
+        new Mascota();
+        Mascota mascota = Mascota.builder()
+                .id(1L)
+                .nombre("someNombreMascota")
+                .build();
+        new Usuario();
+        Usuario usuario = Usuario.builder()
+                .nombre("someNombreVeterinario")
+                .rol(Rol.VETERINARIO)
+                .build();
+        new Cita();
+        Cita cita =  Cita.builder()
+                .id(1L)
+                .fechaHora(LocalDateTime.now())
+                .estado(AppointmentStatus.COMPLETA)
+                .motivo(motivo)
+                .mascota(mascota)
+                .veterinario(usuario)
+                .build();
+
+        Long citaId = 1L;
+        when(citaService.actualizarEstadoCita(any(), any())).thenThrow(new IllegalArgumentException("Estado no valido"));
+        mockMvc.perform(
+                        put("/api/citas/{id}/estado", citaId)
+                                .with(csrf())
+                                .param("estado", "COMPLETO")
+                )
+                .andExpect(status().is4xxClientError());
+    }
     @Test
     public void cancelAppointment_valid() throws Exception {}
     @Test

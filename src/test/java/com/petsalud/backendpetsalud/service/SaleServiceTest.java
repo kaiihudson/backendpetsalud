@@ -94,7 +94,7 @@ public class SaleServiceTest {
         when(usuarioRepository.findById(any())).thenReturn(Optional.empty());
         //act
         try {
-            ventaService.realizarVenta(1L, Collections.singletonList(producto.getId()));
+                ventaService.realizarVenta(1L, Collections.singletonList(producto.getId()));
             //assert
             fail("encontro un usuario");
         } catch (IllegalArgumentException e){
