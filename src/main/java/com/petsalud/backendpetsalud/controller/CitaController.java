@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -63,6 +65,7 @@ public class CitaController {
 
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'VETERINARIO')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> cancelarCita(@PathVariable Long id) {
         citaService.cancelarCita(id);
@@ -82,12 +85,19 @@ public class CitaController {
     }
 
     @GetMapping("/entre-fechas")
-    public ResponseEntity<List<Cita>> listarCitasEntreFechas(
+    public ResponseEntity<?> listarCitasEntreFechas(
             @RequestParam String inicio,
             @RequestParam String fin) {
-        LocalDateTime inicioParsed = LocalDateTime.parse(inicio);
-        LocalDateTime finParsed = LocalDateTime.parse(fin);
-        List<Cita> citas = citaService.listarCitasEntreFechas(inicioParsed, finParsed);
-        return ResponseEntity.ok(citas);
+        try {
+            LocalDateTime inicioParsed = LocalDateTime.parse(inicio);
+            LocalDateTime finParsed = LocalDateTime.parse(fin);
+            if (inicioParsed.equals(finParsed) || inicioParsed.isAfter(finParsed)) {
+                throw new IllegalArgumentException("El rango entregado no es valido");
+            }
+            List<Cita> citas = citaService.listarCitasEntreFechas(inicioParsed, finParsed);
+            return ResponseEntity.ok(citas);
+        } catch (DateTimeParseException | IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body(Collections.singletonList(ex.getMessage()));
+        }
     }
 }
