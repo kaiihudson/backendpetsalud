@@ -33,6 +33,9 @@ public class AppointmentServiceTest {
     @Mock
     private UsuarioRepository usuarioRepository;
 
+    @Mock
+    private UsuarioService usuarioService;
+
     @InjectMocks
     private CitaServiceImpl citaService;
 
@@ -41,6 +44,7 @@ public class AppointmentServiceTest {
         Long mascotaId  = 1L;
         Long veterinarioId = 2L;
         LocalDateTime fecha= LocalDateTime.now();
+        String username = "someEmail";
         String motivo = "someMotive";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
         new Mascota();
@@ -78,9 +82,10 @@ public class AppointmentServiceTest {
                 .build();
         when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
         when(usuarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
+        when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         when(citaRepository.save(any())).thenReturn(cita);
 
-        Cita citaFromService = citaService.agendarCita(mascotaId, veterinarioId, fecha, motivo);
+        Cita citaFromService = citaService.agendarCita(mascotaId, veterinarioId, fecha, motivo, username);
 
         assertEquals(cita, citaFromService);
     }
@@ -90,9 +95,10 @@ public class AppointmentServiceTest {
         Long veterinarioId = 1L;
         LocalDateTime fechaHora = LocalDateTime.now().minusHours(1);
         String motivo = "someMotive";
+        String username = "someEmail";
 
         try {
-            citaService.agendarCita(mascotaId, veterinarioId, fechaHora, motivo);
+            citaService.agendarCita(mascotaId, veterinarioId, fechaHora, motivo, username);
         } catch (IllegalArgumentException e) {
             assertEquals("La cita no puede ocurrir en un tiempo ya pasado", e.getMessage());
         }
@@ -105,10 +111,12 @@ public class AppointmentServiceTest {
         Long veterinarioId = 1L;
         LocalDateTime fechaHora = LocalDateTime.now();
         String motivo = "someMotive";
+        String username = "someEmail";
         when(mascotaRepository.findById(any())).thenReturn(Optional.empty());
 
+        when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         try {
-            citaService.agendarCita(mascotaId, veterinarioId, fechaHora, motivo);
+            citaService.agendarCita(mascotaId, veterinarioId, fechaHora, motivo, username);
         } catch (IllegalArgumentException e) {
             assertEquals("Mascota no encontrada", e.getMessage());
         }
@@ -126,10 +134,13 @@ public class AppointmentServiceTest {
         Long veterinarioId = 1L;
         LocalDateTime fechaHora = LocalDateTime.now();
         String motivo = "someMotive";
+        String username = "someEmail";
         when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
         when(usuarioRepository.findById(any())).thenReturn(Optional.empty());
+
+        when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         try {
-            citaService.agendarCita(mascotaId, veterinarioId, fechaHora, motivo);
+            citaService.agendarCita(mascotaId, veterinarioId, fechaHora, motivo, username);
         } catch (IllegalArgumentException e) {
             assertEquals("Veterinario no encontrado", e.getMessage());
         }
@@ -151,10 +162,12 @@ public class AppointmentServiceTest {
                 .build();
         LocalDateTime fechaHora = LocalDateTime.now();
         String motivo = "someMotive";
+        String username = "someEmail";
         when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
         when(usuarioRepository.findById(any())).thenReturn(Optional.of(usuario));
+        when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         try {
-            citaService.agendarCita(mascotaId, veterinarioId, fechaHora, motivo);
+            citaService.agendarCita(mascotaId, veterinarioId, fechaHora, motivo, username);
         } catch (IllegalArgumentException e) {
             assertEquals("Usuario no es veterinario", e.getMessage());
         }
@@ -165,6 +178,7 @@ public class AppointmentServiceTest {
         Long veterinarioId = 2L;
         LocalDateTime fecha= LocalDateTime.now();
         String motivo = "someMotive";
+        String username = "someEmail";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
         new Mascota();
         Mascota mascota = Mascota.builder()
@@ -202,8 +216,9 @@ public class AppointmentServiceTest {
         when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
         when(usuarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
         when(citaRepository.getAllByVeterinarioIdOrderByFechaHoraAsc(2L)).thenReturn(List.of(citaPrevia));
+        when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         try {
-            citaService.agendarCita(mascotaId, veterinarioId, fecha, motivo);
+            citaService.agendarCita(mascotaId, veterinarioId, fecha, motivo, username);
             fail();
         } catch (IllegalArgumentException e){
             assertEquals("Hora no valida", e.getMessage() );
@@ -216,6 +231,7 @@ public class AppointmentServiceTest {
         Long veterinarioId = 2L;
         LocalDateTime fecha= LocalDateTime.now();
         String motivo = "someMotive";
+        String username = "someEmail";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
         new Mascota();
         Mascota mascota = Mascota.builder()
@@ -253,8 +269,9 @@ public class AppointmentServiceTest {
         when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
         when(usuarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
         when(citaRepository.getAllByVeterinarioIdOrderByFechaHoraAsc(2L)).thenReturn(List.of(citaPrevia));
+        when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         try {
-            citaService.agendarCita(mascotaId, veterinarioId, fecha, motivo);
+            citaService.agendarCita(mascotaId, veterinarioId, fecha, motivo, username);
             fail();
         } catch (IllegalArgumentException e){
             assertEquals("Hora no valida", e.getMessage() );
@@ -267,6 +284,7 @@ public class AppointmentServiceTest {
         Long veterinarioId = 2L;
         LocalDateTime fecha= LocalDateTime.now().plusMinutes(1);
         String motivo = "someMotive";
+        String username = "someEmail";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
         new Mascota();
         Mascota mascota = Mascota.builder()
@@ -304,8 +322,9 @@ public class AppointmentServiceTest {
         when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
         when(usuarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
         when(citaRepository.getAllByVeterinarioIdOrderByFechaHoraAsc(2L)).thenReturn(List.of(citaPrevia));
+        when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         try {
-            citaService.agendarCita(mascotaId, veterinarioId, fecha, motivo);
+            citaService.agendarCita(mascotaId, veterinarioId, fecha, motivo, username);
             fail();
         } catch (IllegalArgumentException e){
             assertEquals("Hora no valida", e.getMessage() );
@@ -318,6 +337,7 @@ public class AppointmentServiceTest {
         Long veterinarioId = 2L;
         LocalDateTime fecha= LocalDateTime.now().plusMinutes(45);
         String motivo = "someMotive";
+        String username = "someEmail";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
         new Mascota();
         Mascota mascota = Mascota.builder()
@@ -355,8 +375,9 @@ public class AppointmentServiceTest {
         when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
         when(usuarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
         when(citaRepository.getAllByVeterinarioIdOrderByFechaHoraAsc(2L)).thenReturn(List.of(citaPrevia));
+        when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         try {
-            citaService.agendarCita(mascotaId, veterinarioId, fecha, motivo);
+            citaService.agendarCita(mascotaId, veterinarioId, fecha, motivo, username);
             fail();
         } catch (IllegalArgumentException e){
             assertEquals("Hora no valida", e.getMessage() );
@@ -369,6 +390,7 @@ public class AppointmentServiceTest {
         Long veterinarioId = 2L;
         LocalDateTime fecha= LocalDateTime.now().plusMinutes(50);
         String motivo = "someMotive";
+        String username = "someEmail";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
         new Mascota();
         Mascota mascota = Mascota.builder()
@@ -415,8 +437,9 @@ public class AppointmentServiceTest {
         when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
         when(usuarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
         when(citaRepository.getAllByVeterinarioIdOrderByFechaHoraAsc(2L)).thenReturn(List.of(citaPrevia, citaPrevia2));
+        when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         try {
-            citaService.agendarCita(mascotaId, veterinarioId, fecha, motivo);
+            citaService.agendarCita(mascotaId, veterinarioId, fecha, motivo, username);
             fail();
         } catch (IllegalArgumentException e){
             assertEquals("Hora no valida", e.getMessage() );
@@ -425,11 +448,11 @@ public class AppointmentServiceTest {
     }
     @Test
     public void agendarCita_withPartialOverlap_overlapIsCANCELADA_success(){
-
         Long mascotaId  = 1L;
         Long veterinarioId = 2L;
         LocalDateTime fecha= LocalDateTime.now().plusMinutes(50);
         String motivo = "someMotive";
+        String username = "someEmail";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
         new Mascota();
         Mascota mascota = Mascota.builder()
@@ -476,15 +499,25 @@ public class AppointmentServiceTest {
         when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
         when(usuarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
         when(citaRepository.getAllByVeterinarioIdOrderByFechaHoraAsc(2L)).thenReturn(List.of(citaPrevia, citaPrevia2));
+        when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         try {
-            citaService.agendarCita(mascotaId, veterinarioId, fecha, motivo);
+            citaService.agendarCita(mascotaId, veterinarioId, fecha, motivo, username);
             //TODO: do this
             assert true;
         } catch (IllegalArgumentException e){
             fail();
         }
+    }
 
-
+    @Test
+    public void agendarCita_usuarioIsNotOwner(){
+        when(usuarioService.checkForPet(any(), any())).thenReturn(false);
+        try {
+            citaService.agendarCita(1L, 2L, LocalDateTime.now(), null, null);
+            fail();
+        } catch (IllegalArgumentException e){
+            assertEquals("Mascota no pertenece a usuario", e.getMessage());
+        }
     }
 
     @Test

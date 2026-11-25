@@ -13,4 +13,5 @@ public interface UsuarioService {
     UsuarioDTO actualizarUsuario(Long id, Usuario usuario);
     void eliminarUsuario(Long id);
     List<UsuarioDTO> listarUsuarios();
+    boolean checkForPet(String username, Long id);
 }

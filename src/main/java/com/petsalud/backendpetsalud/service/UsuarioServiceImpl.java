@@ -99,4 +99,21 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .map(this::translateUserDTO)
                 .toList();
     }
+
+    @Override
+    public boolean checkForPet(String username, Long idMascota){
+        boolean exists = false;
+        Optional<Usuario> user = usuarioRepository.findByEmail(username);
+        if (user.isPresent()) {
+            for (Mascota pet : user.get().getMascotas()) {
+              if (pet.getId().equals(idMascota)) {
+                  exists = true;
+                  break;
+              }
+            }
+            return exists;
+        } else {
+            throw new IllegalArgumentException("Usuario no encontrado");
+        }
+    }
 }

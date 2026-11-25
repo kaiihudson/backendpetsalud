@@ -1,6 +1,7 @@
 package com.petsalud.backendpetsalud.service;
 
 import com.petsalud.backendpetsalud.dto.UsuarioDTO;
+import com.petsalud.backendpetsalud.entity.Mascota;
 import com.petsalud.backendpetsalud.entity.Rol;
 import com.petsalud.backendpetsalud.entity.Usuario;
 import com.petsalud.backendpetsalud.repository.UsuarioRepository;
@@ -10,10 +11,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -239,5 +237,53 @@ public class UserServiceTest {
         when(usuarioRepository.findAll()).thenReturn(Arrays.asList(user1, user2));
         List<UsuarioDTO> usuarios = usuarioService.listarUsuarios();
         assertEquals(2, usuarios.size());
+    }
+    @Test
+    public void checkIfUserHasPet_petExists(){
+        new Mascota();
+        Mascota mascota = Mascota.builder()
+                .id(1L)
+                .build();
+        new Usuario();
+        Usuario user = Usuario.builder()
+                .id(1L)
+                .email("someUsuario")
+                .mascotas(Collections.singletonList(mascota))
+                .build();
+        String username = "someUsuario";
+        Long mascotaId = 1L;
+        when(usuarioRepository.findByEmail(any())).thenReturn(Optional.of(user));
+        boolean check = usuarioService.checkForPet(username, mascotaId);
+        assertTrue(check);
+    }
+    @Test
+    public void checkIfUserHasPet_petDoesNotExist(){
+        new Mascota();
+        Mascota mascota = Mascota.builder()
+                .id(2L)
+                .build();
+        new Usuario();
+        Usuario user = Usuario.builder()
+                .id(1L)
+                .email("someUsuario")
+                .mascotas(Collections.singletonList(mascota))
+                .build();
+        String username = "someUsuario";
+        Long mascotaId = 1L;
+        when(usuarioRepository.findByEmail(any())).thenReturn(Optional.of(user));
+        boolean check = usuarioService.checkForPet(username, mascotaId);
+        assertFalse(check);
+    }
+    @Test
+    public void checkIfUserHasPet_userDoesNotExist(){
+        String username = "someUsuario";
+        Long mascotaId = 1L;
+        try {
+            usuarioService.checkForPet(username, mascotaId);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertEquals("Usuario no encontrado", e.getMessage());
+        }
+
     }
 }

@@ -22,6 +22,8 @@ public class CitaServiceImpl implements CitaService {
 
     @Autowired
     private UsuarioRepository usuarioRepository;
+    @Autowired
+    private UsuarioService usuarioService;
 
     public boolean checkAvailability(LocalDateTime target, LocalDateTime checker, long duration) {
         LocalDateTime targetEnding = target.plusMinutes(duration);
@@ -31,22 +33,23 @@ public class CitaServiceImpl implements CitaService {
     }
 
     @Override
-    public Cita agendarCita(Long mascotaId, Long veterinarioId, LocalDateTime fechaHora, String motivo) {
+    public Cita agendarCita(Long mascotaId, Long veterinarioId, LocalDateTime fechaHora, String motivo, String username) {
         if (fechaHora.isBefore(LocalDateTime.now().minusMinutes(1))) {
             throw new IllegalArgumentException("La cita no puede ocurrir en un tiempo ya pasado");
         }
+        if (!usuarioService.checkForPet(username,  mascotaId)) {
+            throw new IllegalArgumentException("Mascota no pertenece a usuario");
+        }
         // TODO: verificar horario maximo de cita, se asumen 45 minutos, queda configurable
-        long appointmentDuration = 45;
         Mascota mascota = mascotaRepository.findById(mascotaId)
                 .orElseThrow(() -> new IllegalArgumentException("Mascota no encontrada"));
 
         Usuario veterinario = usuarioRepository.findById(veterinarioId)
                 .orElseThrow(() -> new IllegalArgumentException("Veterinario no encontrado"));
-
-        // Opcional: Verificar disponibilidad del veterinario en ese horario
         if (veterinario.getRol() != Rol.VETERINARIO) {
             throw new IllegalArgumentException("Usuario no es veterinario");
         }
+        long appointmentDuration = 45;
         // verificar disponibilidad
         List<Cita> citas = citaRepository.getAllByVeterinarioIdOrderByFechaHoraAsc(veterinario.getId());
         boolean valid = true;

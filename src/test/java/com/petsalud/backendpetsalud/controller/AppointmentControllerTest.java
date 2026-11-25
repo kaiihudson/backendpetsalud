@@ -61,7 +61,7 @@ public class AppointmentControllerTest {
                 .mascota(mascota)
                 .veterinario(usuario)
                 .build();
-        when(citaService.agendarCita(any(), any(), any(), any())).thenReturn(cita);
+        when(citaService.agendarCita(any(), any(), any(), any(), any())).thenReturn(cita);
 
         mockMvc.perform(
                 post("/api/citas")
@@ -80,7 +80,7 @@ public class AppointmentControllerTest {
         String fechaHora = LocalDateTime.now().toString();
         String motivo = "someMotivo";
 
-        when(citaService.agendarCita(any(), any(), any(), any())).thenThrow(new IllegalArgumentException());
+        when(citaService.agendarCita(any(), any(), any(), any(), any())).thenThrow(new IllegalArgumentException());
 
         mockMvc.perform(
                         post("/api/citas")

@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CitaService {
-    Cita agendarCita(Long mascotaId, Long veterinarioId, LocalDateTime fechaHora, String motivo);
+    Cita agendarCita(Long mascotaId, Long veterinarioId, LocalDateTime fechaHora, String motivo, String username);
     Optional<Cita> obtenerCitaPorId(Long id);
     Cita actualizarEstadoCita(Long id, String nuevoEstado);
     void cancelarCita(Long id);

@@ -6,6 +6,8 @@ import com.petsalud.backendpetsalud.service.CitaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
@@ -31,17 +33,19 @@ public class CitaController {
     }
 
     @PostMapping
-    public ResponseEntity<CitaDto> agendarCita(
+    public ResponseEntity<?> agendarCita(
+            @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam Long mascotaId,
             @RequestParam Long veterinarioId,
             @RequestParam String fechaHora, // Formato ISO 8601
             @RequestParam String motivo) {
         LocalDateTime fechaHoraParsed = LocalDateTime.parse(fechaHora);
+        String username = userDetails.getUsername();
         try {
-            Cita nuevaCita = citaService.agendarCita(mascotaId, veterinarioId, fechaHoraParsed, motivo);
+            Cita nuevaCita = citaService.agendarCita(mascotaId, veterinarioId, fechaHoraParsed, motivo, username);
             return ResponseEntity.ok(translateToDTO(nuevaCita));
         } catch (IllegalArgumentException ex) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.badRequest().body(ex.getMessage());
         }
     }
 
