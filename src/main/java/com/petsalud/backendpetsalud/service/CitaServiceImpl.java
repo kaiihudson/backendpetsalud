@@ -4,9 +4,12 @@ import com.petsalud.backendpetsalud.entity.*;
 import com.petsalud.backendpetsalud.repository.CitaRepository;
 import com.petsalud.backendpetsalud.repository.MascotaRepository;
 import com.petsalud.backendpetsalud.repository.UsuarioRepository;
+import com.petsalud.backendpetsalud.repository.VeterinarioRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -14,16 +17,26 @@ import java.util.Optional;
 @Service
 public class CitaServiceImpl implements CitaService {
 
-    @Autowired
-    private CitaRepository citaRepository;
+    private final CitaRepository citaRepository;
 
-    @Autowired
-    private MascotaRepository mascotaRepository;
+    private final MascotaRepository mascotaRepository;
+    private final Clock clock;
+    private final UsuarioService usuarioService;
+    private final VeterinarioRepository veterinarioRepository;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-    @Autowired
-    private UsuarioService usuarioService;
+    public CitaServiceImpl(
+            CitaRepository citaRepository,
+            MascotaRepository mascotaRepository,
+            Clock clock,
+            UsuarioService usuarioService,
+            VeterinarioRepository veterinarioRepository
+    ) {
+        this.citaRepository = citaRepository;
+        this.mascotaRepository = mascotaRepository;
+        this.clock = clock;
+        this.usuarioService = usuarioService;
+        this.veterinarioRepository = veterinarioRepository;
+    }
 
     public boolean checkAvailability(LocalDateTime target, LocalDateTime checker, long duration) {
         LocalDateTime targetEnding = target.plusMinutes(duration);
@@ -34,7 +47,7 @@ public class CitaServiceImpl implements CitaService {
 
     @Override
     public Cita agendarCita(Long mascotaId, Long veterinarioId, LocalDateTime fechaHora, String motivo, String username) {
-        if (fechaHora.isBefore(LocalDateTime.now().minusMinutes(1))) {
+        if (fechaHora.isBefore(LocalDateTime.now(clock).minusMinutes(1))) {
             throw new IllegalArgumentException("La cita no puede ocurrir en un tiempo ya pasado");
         }
         if (!usuarioService.checkForPet(username,  mascotaId)) {
@@ -42,25 +55,23 @@ public class CitaServiceImpl implements CitaService {
         }
         // TODO: verificar horario maximo de cita, se asumen 45 minutos, queda configurable
         Mascota mascota = mascotaRepository.findById(mascotaId)
-                .orElseThrow(() -> new IllegalArgumentException("Mascota no encontrada"));
+                .orElseThrow(() -> new EntityNotFoundException("Mascota no encontrada"));
 
-        Usuario veterinario = usuarioRepository.findById(veterinarioId)
-                .orElseThrow(() -> new IllegalArgumentException("Veterinario no encontrado"));
-        if (veterinario.getRol() != Rol.VETERINARIO) {
-            throw new IllegalArgumentException("Usuario no es veterinario");
-        }
+        Veterinario veterinario = veterinarioRepository.findById(veterinarioId).orElseThrow(()-> new EntityNotFoundException("Veterinario no encontrado"));
         long appointmentDuration = 45;
-        // verificar disponibilidad
-        List<Cita> citas = citaRepository.getAllByVeterinarioIdOrderByFechaHoraAsc(veterinario.getId());
-        boolean valid = true;
-        for (Cita current: citas) {
-            if (current.getEstado() == AppointmentStatus.CANCELADA){continue;}
-            if (checkAvailability(current.getFechaHora(), fechaHora, appointmentDuration)) {
-                valid = false;
-                break;
+        // tiene horas disponibles en el horario?
+        if (fechaHora.toLocalTime().isAfter(veterinario.getInicioTurno())
+                && fechaHora.toLocalTime().isBefore(
+                        veterinario.getFinTurno().minusMinutes(appointmentDuration))){
+            // verificar disponibilidad si hay horas
+            List<Cita> citas = citaRepository.getAllByVeterinarioIdOrderByFechaHoraAsc(veterinario.getId());
+            for (Cita current: citas) {
+                if (current.getEstado() == AppointmentStatus.CANCELADA){continue;}
+                if (checkAvailability(current.getFechaHora(), fechaHora, appointmentDuration)) {
+                    throw new IllegalArgumentException("Hora no valida");
+                }
             }
-        }
-        if (!valid) {
+        } else {
             throw new IllegalArgumentException("Hora no valida");
         }
 

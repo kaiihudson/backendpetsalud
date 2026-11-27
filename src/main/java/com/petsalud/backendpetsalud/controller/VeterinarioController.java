@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
 
 @RestController
@@ -34,8 +35,8 @@ public class VeterinarioController {
         String username = userDetails.getUsername();
         //TODO: get rol of veterinario
         try {
-            LocalDateTime inicio =  LocalDateTime.parse(inicioTurno);
-            LocalDateTime fim = LocalDateTime.parse(fimTurno);
+            LocalTime inicio =  LocalTime.parse(inicioTurno);
+            LocalTime fim = LocalTime.parse(fimTurno);
             return ResponseEntity.ok(veterinarioService.setTurno(id, inicio, fim, username));
         } catch (DateTimeParseException | IllegalArgumentException | EntityNotFoundException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());

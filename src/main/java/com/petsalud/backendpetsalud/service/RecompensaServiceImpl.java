@@ -8,6 +8,7 @@ import com.petsalud.backendpetsalud.service.RecompensaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -15,11 +16,17 @@ import java.util.Optional;
 @Service
 public class RecompensaServiceImpl implements RecompensaService {
 
-    @Autowired
-    private RecompensaRepository recompensaRepository;
+    private final RecompensaRepository recompensaRepository;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
+
+    private final Clock clock;
+
+    public RecompensaServiceImpl(RecompensaRepository recompensaRepository, UsuarioRepository usuarioRepository, Clock clock) {
+        this.recompensaRepository = recompensaRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.clock = clock;
+    }
 
     @Override
     public Recompensa agregarRecompensa(Long usuarioId, Recompensa recompensa) {
@@ -27,7 +34,7 @@ public class RecompensaServiceImpl implements RecompensaService {
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
         recompensa.setUsuario(usuario);
-        recompensa.setFecha(LocalDateTime.now());
+        recompensa.setFecha(LocalDateTime.now(clock));
 
         return recompensaRepository.save(recompensa);
     }

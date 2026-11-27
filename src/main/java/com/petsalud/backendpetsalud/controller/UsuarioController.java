@@ -16,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/usuarios")
-public class UsuarioController {
+public class  UsuarioController {
 
     private final UsuarioService usuarioService;
 
@@ -60,7 +60,7 @@ public class UsuarioController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping("/admin")
+    @PostMapping("/registro/admin")
     public ResponseEntity<String> registrarUsuarioAsAdmin(@RequestBody UsuarioRequest usuario) {
         try {
             if (usuario.password().isEmpty() || usuario.email().isEmpty()) {

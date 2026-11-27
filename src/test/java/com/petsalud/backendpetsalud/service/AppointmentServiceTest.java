@@ -4,20 +4,20 @@ import com.petsalud.backendpetsalud.entity.*;
 import com.petsalud.backendpetsalud.repository.CitaRepository;
 import com.petsalud.backendpetsalud.repository.MascotaRepository;
 import com.petsalud.backendpetsalud.repository.UsuarioRepository;
+import com.petsalud.backendpetsalud.repository.VeterinarioRepository;
+import jakarta.persistence.EntityNotFoundException;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -36,14 +36,33 @@ public class AppointmentServiceTest {
     @Mock
     private UsuarioService usuarioService;
 
-    @InjectMocks
+    @Mock
+    private VeterinarioRepository veterinarioRepository;
+
     private CitaServiceImpl citaService;
+
+    private static final ZoneId ZONE = ZoneId.of("America/Santiago");
+    private static final LocalDateTime NOW = LocalDateTime.of(2026, 6, 6, 13, 0);
+    private static final Clock FIXED_CLOCK = Clock.fixed(NOW.atZone(ZONE).toInstant(), ZONE);
+    private static final LocalTime SHIFT_START = LocalTime.of(10,0);
+    private static final LocalTime SHIFT_END = LocalTime.of(22,0);
+
+    @BeforeEach
+    void setUp(){
+        citaService = new CitaServiceImpl(
+                citaRepository,
+                mascotaRepository,
+                FIXED_CLOCK,
+                usuarioService,
+                veterinarioRepository
+        );
+    }
 
     @Test
     public void agendarCita_withNoOverlaps_success() {
         Long mascotaId  = 1L;
         Long veterinarioId = 2L;
-        LocalDateTime fecha= LocalDateTime.now();
+        LocalDateTime fecha = NOW;
         String username = "someEmail";
         String motivo = "someMotive";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
@@ -58,8 +77,8 @@ public class AppointmentServiceTest {
                 .citas(new ArrayList<>())
                 .expedientesMedicos(new ArrayList<>())
                 .build();
-        new Usuario();
-        Usuario veterinario = Usuario.builder()
+        new Veterinario();
+        Veterinario veterinario = Veterinario.builder()
                 .id(2L)
                 .email("someOtherEmail")
                 .password("somePassword")
@@ -70,6 +89,8 @@ public class AppointmentServiceTest {
                 .ventas(new ArrayList<>())
                 .recompensas(new ArrayList<>())
                 .notificaciones(new ArrayList<>())
+                .inicioTurno(SHIFT_START)
+                .finTurno(SHIFT_END)
                 .build();
         new Cita();
         Cita cita = Cita.builder()
@@ -81,7 +102,7 @@ public class AppointmentServiceTest {
                 .veterinario(veterinario)
                 .build();
         when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
-        when(usuarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
+        when(veterinarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
         when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         when(citaRepository.save(any())).thenReturn(cita);
 
@@ -93,7 +114,7 @@ public class AppointmentServiceTest {
     public void agendarCita_timeIsBeforeNow(){
         Long mascotaId = 1L;
         Long veterinarioId = 1L;
-        LocalDateTime fechaHora = LocalDateTime.now().minusHours(1);
+        LocalDateTime fechaHora = NOW.minusHours(1);
         String motivo = "someMotive";
         String username = "someEmail";
 
@@ -109,15 +130,13 @@ public class AppointmentServiceTest {
     public void agendarCita_mascotaDoesNotExist(){
         Long mascotaId = 1L;
         Long veterinarioId = 1L;
-        LocalDateTime fechaHora = LocalDateTime.now();
         String motivo = "someMotive";
         String username = "someEmail";
         when(mascotaRepository.findById(any())).thenReturn(Optional.empty());
-
         when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         try {
-            citaService.agendarCita(mascotaId, veterinarioId, fechaHora, motivo, username);
-        } catch (IllegalArgumentException e) {
+            citaService.agendarCita(mascotaId, veterinarioId, NOW, motivo, username);
+        } catch (EntityNotFoundException e) {
             assertEquals("Mascota no encontrada", e.getMessage());
         }
 
@@ -132,16 +151,13 @@ public class AppointmentServiceTest {
                 .nombre("someNombre")
                 .build();
         Long veterinarioId = 1L;
-        LocalDateTime fechaHora = LocalDateTime.now();
         String motivo = "someMotive";
         String username = "someEmail";
         when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
-        when(usuarioRepository.findById(any())).thenReturn(Optional.empty());
-
         when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         try {
-            citaService.agendarCita(mascotaId, veterinarioId, fechaHora, motivo, username);
-        } catch (IllegalArgumentException e) {
+            citaService.agendarCita(mascotaId, veterinarioId, NOW, motivo, username);
+        } catch (EntityNotFoundException e) {
             assertEquals("Veterinario no encontrado", e.getMessage());
         }
     }
@@ -155,28 +171,20 @@ public class AppointmentServiceTest {
                 .build();
         Long veterinarioId = 1L;
         new Usuario();
-        Usuario usuario = Usuario.builder()
-                .id(1L)
-                .nombre("someNombre")
-                .rol(Rol.CLIENTE)
-                .build();
-        LocalDateTime fechaHora = LocalDateTime.now();
         String motivo = "someMotive";
         String username = "someEmail";
         when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
-        when(usuarioRepository.findById(any())).thenReturn(Optional.of(usuario));
         when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         try {
-            citaService.agendarCita(mascotaId, veterinarioId, fechaHora, motivo, username);
-        } catch (IllegalArgumentException e) {
-            assertEquals("Usuario no es veterinario", e.getMessage());
+            citaService.agendarCita(mascotaId, veterinarioId, NOW, motivo, username);
+        } catch (EntityNotFoundException e) {
+            assertEquals("Veterinario no encontrado", e.getMessage());
         }
     }
     @Test
     public void agendarCita_withPartialOverlap_endsWhile_failure() {
         Long mascotaId  = 1L;
         Long veterinarioId = 2L;
-        LocalDateTime fecha= LocalDateTime.now();
         String motivo = "someMotive";
         String username = "someEmail";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
@@ -191,8 +199,8 @@ public class AppointmentServiceTest {
                 .citas(new ArrayList<>())
                 .expedientesMedicos(new ArrayList<>())
                 .build();
-        new Usuario();
-        Usuario veterinario = Usuario.builder()
+        new Veterinario();
+        Veterinario veterinario = Veterinario.builder()
                 .id(2L)
                 .email("someOtherEmail")
                 .password("somePassword")
@@ -203,22 +211,24 @@ public class AppointmentServiceTest {
                 .ventas(new ArrayList<>())
                 .recompensas(new ArrayList<>())
                 .notificaciones(new ArrayList<>())
+                .inicioTurno(SHIFT_START)
+                .finTurno(SHIFT_END)
                 .build();
         new Cita();
         Cita citaPrevia = Cita.builder()
                 .id(1L)
-                .fechaHora(LocalDateTime.now().plusMinutes(30))
+                .fechaHora(NOW.plusMinutes(30))
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo(motivo)
                 .mascota(mascota)
                 .veterinario(veterinario)
                 .build();
         when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
-        when(usuarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
+        when(veterinarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
         when(citaRepository.getAllByVeterinarioIdOrderByFechaHoraAsc(2L)).thenReturn(List.of(citaPrevia));
         when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         try {
-            citaService.agendarCita(mascotaId, veterinarioId, fecha, motivo, username);
+            citaService.agendarCita(mascotaId, veterinarioId, NOW, motivo, username);
             fail();
         } catch (IllegalArgumentException e){
             assertEquals("Hora no valida", e.getMessage() );
@@ -229,7 +239,7 @@ public class AppointmentServiceTest {
     public void agendarCita_withFullOverlap_startsWith_failure() {
         Long mascotaId  = 1L;
         Long veterinarioId = 2L;
-        LocalDateTime fecha= LocalDateTime.now();
+        LocalDateTime fecha= NOW;
         String motivo = "someMotive";
         String username = "someEmail";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
@@ -244,8 +254,8 @@ public class AppointmentServiceTest {
                 .citas(new ArrayList<>())
                 .expedientesMedicos(new ArrayList<>())
                 .build();
-        new Usuario();
-        Usuario veterinario = Usuario.builder()
+        new Veterinario();
+        Veterinario veterinario = Veterinario.builder()
                 .id(2L)
                 .email("someOtherEmail")
                 .password("somePassword")
@@ -256,6 +266,8 @@ public class AppointmentServiceTest {
                 .ventas(new ArrayList<>())
                 .recompensas(new ArrayList<>())
                 .notificaciones(new ArrayList<>())
+                .inicioTurno(SHIFT_START)
+                .finTurno(SHIFT_END)
                 .build();
         new Cita();
         Cita citaPrevia = Cita.builder()
@@ -267,7 +279,7 @@ public class AppointmentServiceTest {
                 .veterinario(veterinario)
                 .build();
         when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
-        when(usuarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
+        when(veterinarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
         when(citaRepository.getAllByVeterinarioIdOrderByFechaHoraAsc(2L)).thenReturn(List.of(citaPrevia));
         when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         try {
@@ -282,7 +294,7 @@ public class AppointmentServiceTest {
     public void agendarCita_withPartialOverlap_startsWhile_failure() {
         Long mascotaId  = 1L;
         Long veterinarioId = 2L;
-        LocalDateTime fecha= LocalDateTime.now().plusMinutes(1);
+        LocalDateTime fecha= NOW.plusMinutes(1);
         String motivo = "someMotive";
         String username = "someEmail";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
@@ -297,8 +309,8 @@ public class AppointmentServiceTest {
                 .citas(new ArrayList<>())
                 .expedientesMedicos(new ArrayList<>())
                 .build();
-        new Usuario();
-        Usuario veterinario = Usuario.builder()
+        new Veterinario();
+        Veterinario veterinario = Veterinario.builder()
                 .id(2L)
                 .email("someOtherEmail")
                 .password("somePassword")
@@ -309,18 +321,20 @@ public class AppointmentServiceTest {
                 .ventas(new ArrayList<>())
                 .recompensas(new ArrayList<>())
                 .notificaciones(new ArrayList<>())
+                .inicioTurno(SHIFT_START)
+                .finTurno(SHIFT_END)
                 .build();
         new Cita();
         Cita citaPrevia = Cita.builder()
                 .id(1L)
-                .fechaHora(LocalDateTime.now())
+                .fechaHora(NOW)
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo(motivo)
                 .mascota(mascota)
                 .veterinario(veterinario)
                 .build();
         when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
-        when(usuarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
+        when(veterinarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
         when(citaRepository.getAllByVeterinarioIdOrderByFechaHoraAsc(2L)).thenReturn(List.of(citaPrevia));
         when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         try {
@@ -335,7 +349,7 @@ public class AppointmentServiceTest {
     public void agendarCita_withPartialOverlap_startsOnEnd_failure() {
         Long mascotaId  = 1L;
         Long veterinarioId = 2L;
-        LocalDateTime fecha= LocalDateTime.now().plusMinutes(45);
+        LocalDateTime fecha= NOW.plusMinutes(45);
         String motivo = "someMotive";
         String username = "someEmail";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
@@ -350,30 +364,32 @@ public class AppointmentServiceTest {
                 .citas(new ArrayList<>())
                 .expedientesMedicos(new ArrayList<>())
                 .build();
-        new Usuario();
-        Usuario veterinario = Usuario.builder()
+        new Veterinario();
+        Veterinario veterinario = Veterinario.builder()
                 .id(2L)
                 .email("someOtherEmail")
                 .password("somePassword")
                 .nombre("someName")
                 .apellido("someLastName")
                 .rol(Rol.VETERINARIO)
-                .mascotas(List.of(mascota))
+                .mascotas(new ArrayList<>())
                 .ventas(new ArrayList<>())
                 .recompensas(new ArrayList<>())
                 .notificaciones(new ArrayList<>())
+                .inicioTurno(SHIFT_START)
+                .finTurno(SHIFT_END)
                 .build();
         new Cita();
         Cita citaPrevia = Cita.builder()
                 .id(1L)
-                .fechaHora(LocalDateTime.now())
+                .fechaHora(NOW)
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo(motivo)
                 .mascota(mascota)
                 .veterinario(veterinario)
                 .build();
         when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
-        when(usuarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
+        when(veterinarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
         when(citaRepository.getAllByVeterinarioIdOrderByFechaHoraAsc(2L)).thenReturn(List.of(citaPrevia));
         when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         try {
@@ -388,7 +404,7 @@ public class AppointmentServiceTest {
     public void agendarCita_withPartialOverlap_endsOnNext_failure() {
         Long mascotaId  = 1L;
         Long veterinarioId = 2L;
-        LocalDateTime fecha= LocalDateTime.now().plusMinutes(50);
+        LocalDateTime fecha= NOW.plusMinutes(50);
         String motivo = "someMotive";
         String username = "someEmail";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
@@ -403,8 +419,8 @@ public class AppointmentServiceTest {
                 .citas(new ArrayList<>())
                 .expedientesMedicos(new ArrayList<>())
                 .build();
-        new Usuario();
-        Usuario veterinario = Usuario.builder()
+        new Veterinario();
+        Veterinario veterinario = Veterinario.builder()
                 .id(2L)
                 .email("someOtherEmail")
                 .password("somePassword")
@@ -415,11 +431,13 @@ public class AppointmentServiceTest {
                 .ventas(new ArrayList<>())
                 .recompensas(new ArrayList<>())
                 .notificaciones(new ArrayList<>())
+                .inicioTurno(SHIFT_START)
+                .finTurno(SHIFT_END)
                 .build();
         new Cita();
         Cita citaPrevia = Cita.builder()
                 .id(1L)
-                .fechaHora(LocalDateTime.now())
+                .fechaHora(NOW)
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo(motivo)
                 .mascota(mascota)
@@ -428,14 +446,14 @@ public class AppointmentServiceTest {
         new Cita();
         Cita citaPrevia2 = Cita.builder()
                 .id(2L)
-                .fechaHora(LocalDateTime.now().plusHours(1))
+                .fechaHora(NOW.plusHours(1))
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo(motivo)
                 .mascota(mascota)
                 .veterinario(veterinario)
                 .build();
         when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
-        when(usuarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
+        when(veterinarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
         when(citaRepository.getAllByVeterinarioIdOrderByFechaHoraAsc(2L)).thenReturn(List.of(citaPrevia, citaPrevia2));
         when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         try {
@@ -450,7 +468,7 @@ public class AppointmentServiceTest {
     public void agendarCita_withPartialOverlap_overlapIsCANCELADA_success(){
         Long mascotaId  = 1L;
         Long veterinarioId = 2L;
-        LocalDateTime fecha= LocalDateTime.now().plusMinutes(50);
+        LocalDateTime fecha= NOW.plusMinutes(50);
         String motivo = "someMotive";
         String username = "someEmail";
         // TODO: verify mascota controller and usuario handling to prevent infinite recursion
@@ -465,8 +483,8 @@ public class AppointmentServiceTest {
                 .citas(new ArrayList<>())
                 .expedientesMedicos(new ArrayList<>())
                 .build();
-        new Usuario();
-        Usuario veterinario = Usuario.builder()
+        new Veterinario();
+        Veterinario veterinario = Veterinario.builder()
                 .id(2L)
                 .email("someOtherEmail")
                 .password("somePassword")
@@ -477,11 +495,13 @@ public class AppointmentServiceTest {
                 .ventas(new ArrayList<>())
                 .recompensas(new ArrayList<>())
                 .notificaciones(new ArrayList<>())
+                .inicioTurno(SHIFT_START)
+                .finTurno(SHIFT_END)
                 .build();
         new Cita();
         Cita citaPrevia = Cita.builder()
                 .id(1L)
-                .fechaHora(LocalDateTime.now())
+                .fechaHora(NOW)
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo(motivo)
                 .mascota(mascota)
@@ -490,33 +510,121 @@ public class AppointmentServiceTest {
         new Cita();
         Cita citaPrevia2 = Cita.builder()
                 .id(2L)
-                .fechaHora(LocalDateTime.now().plusHours(1))
+                .fechaHora(NOW.plusHours(1))
                 .estado(AppointmentStatus.CANCELADA)
                 .motivo(motivo)
                 .mascota(mascota)
                 .veterinario(veterinario)
                 .build();
         when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
-        when(usuarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
+        when(veterinarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
         when(citaRepository.getAllByVeterinarioIdOrderByFechaHoraAsc(2L)).thenReturn(List.of(citaPrevia, citaPrevia2));
         when(usuarioService.checkForPet(any(), any())).thenReturn(true);
         try {
-            citaService.agendarCita(mascotaId, veterinarioId, fecha, motivo, username);
+            Cita newCita = citaService.agendarCita(mascotaId, veterinarioId, fecha, motivo, username);
             //TODO: do this
+            System.out.println(newCita);
             assert true;
-        } catch (IllegalArgumentException e){
+        } catch (EntityNotFoundException | IllegalArgumentException e){
             fail();
         }
     }
-
     @Test
     public void agendarCita_usuarioIsNotOwner(){
         when(usuarioService.checkForPet(any(), any())).thenReturn(false);
         try {
-            citaService.agendarCita(1L, 2L, LocalDateTime.now(), null, null);
+            citaService.agendarCita(1L, 2L, NOW, null, null);
             fail();
         } catch (IllegalArgumentException e){
             assertEquals("Mascota no pertenece a usuario", e.getMessage());
+        }
+    }
+    @Test
+    public void agendarCita_DateIsBeforeStart_failure(){
+        LocalTime beforeStart = SHIFT_START.minusMinutes(1);
+        LocalDateTime appointment = NOW.plusDays(1).withHour(beforeStart.getHour()).withMinute(beforeStart.getMinute());
+        new Mascota();
+        Mascota mascota = Mascota.builder()
+                .id(1L)
+                .nombre("somePetName")
+                .especie("somePetSpecies")
+                .raza("somePetRace")
+                .fechaNacimiento(LocalDate.of(2020, 6, 6))
+                .sexo("M")
+                .citas(new ArrayList<>())
+                .expedientesMedicos(new ArrayList<>())
+                .build();
+        new Veterinario();
+        Veterinario veterinario = Veterinario.builder()
+                .id(2L)
+                .email("someOtherEmail")
+                .password("somePassword")
+                .nombre("someName")
+                .apellido("someLastName")
+                .rol(Rol.VETERINARIO)
+                .mascotas(new ArrayList<>())
+                .ventas(new ArrayList<>())
+                .recompensas(new ArrayList<>())
+                .notificaciones(new ArrayList<>())
+                .inicioTurno(SHIFT_START)
+                .finTurno(SHIFT_END)
+                .build();
+        Long mascotaId= 1L;
+        Long veterinarioId = 2L;
+        String motivo = "someMotivo";
+        String username = "someUsername";
+        when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
+        when(veterinarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
+        when(usuarioService.checkForPet(any(), any())).thenReturn(true);
+        try {
+            citaService.agendarCita(mascotaId, veterinarioId, appointment, motivo, username);
+            fail("Se ejecuto con exito");
+        } catch (IllegalArgumentException ex) {
+            assertEquals("Hora no valida", ex.getMessage());
+        }
+    }
+    @Test
+    public void agendarCita_DateIsAfterEnd_failure(){
+        LocalTime beforeStart = SHIFT_END.plusMinutes(1);
+        LocalDateTime appointment = NOW.plusDays(1).withHour(beforeStart.getHour()).withMinute(beforeStart.getMinute());
+        new Mascota();
+        Mascota mascota = Mascota.builder()
+                .id(1L)
+                .nombre("somePetName")
+                .especie("somePetSpecies")
+                .raza("somePetRace")
+                .fechaNacimiento(LocalDate.of(2020, 6, 6))
+                .sexo("M")
+                .citas(new ArrayList<>())
+                .expedientesMedicos(new ArrayList<>())
+                .build();
+        new Veterinario();
+        Veterinario veterinario = Veterinario.builder()
+                .id(2L)
+                .email("someOtherEmail")
+                .password("somePassword")
+                .nombre("someName")
+                .apellido("someLastName")
+                .rol(Rol.VETERINARIO)
+                .mascotas(new ArrayList<>())
+                .ventas(new ArrayList<>())
+                .recompensas(new ArrayList<>())
+                .notificaciones(new ArrayList<>())
+                .inicioTurno(SHIFT_START)
+                .finTurno(SHIFT_END)
+                .build();
+        Long mascotaId= 1L;
+        Long veterinarioId = 2L;
+        String motivo = "someMotivo";
+        String username = "someUsername";
+        when(mascotaRepository.findById(any())).thenReturn(Optional.of(mascota));
+        when(veterinarioRepository.findById(2L)).thenReturn(Optional.of(veterinario));
+        when(usuarioService.checkForPet(any(), any())).thenReturn(true);
+        try {
+            citaService.agendarCita(mascotaId, veterinarioId, appointment, motivo, username);
+            fail("Se ejecuto con exito");
+        } catch (IllegalArgumentException ex) {
+            assertEquals("Hora no valida", ex.getMessage());
         }
     }
 
@@ -526,7 +634,7 @@ public class AppointmentServiceTest {
         new Cita();
         Cita cita = Cita.builder()
                 .id(1L)
-                .fechaHora(LocalDateTime.now())
+                .fechaHora(NOW)
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(new Mascota())
@@ -563,7 +671,7 @@ public class AppointmentServiceTest {
         new Cita();
         Cita cita = Cita.builder()
                 .id(1L)
-                .fechaHora(LocalDateTime.now())
+                .fechaHora(NOW)
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(new Mascota())
@@ -575,7 +683,7 @@ public class AppointmentServiceTest {
         new Cita();
         Cita newCita = Cita.builder()
                 .id(1L)
-                .fechaHora(LocalDateTime.now())
+                .fechaHora(NOW)
                 .estado(AppointmentStatus.COMPLETA)
                 .motivo("someMotive")
                 .mascota(new Mascota())
@@ -613,7 +721,7 @@ public class AppointmentServiceTest {
         new Cita();
         Cita cita = Cita.builder()
                 .id(1L)
-                .fechaHora(LocalDateTime.now())
+                .fechaHora(NOW)
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(new Mascota())
@@ -639,7 +747,7 @@ public class AppointmentServiceTest {
         new Cita();
         Cita cita = Cita.builder()
                 .id(1L)
-                .fechaHora(LocalDateTime.now())
+                .fechaHora(NOW)
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotivo")
                 .mascota(new Mascota())
@@ -670,7 +778,7 @@ public class AppointmentServiceTest {
         new Cita();
         Cita cita1 = Cita.builder()
                 .id(1L)
-                .fechaHora(LocalDateTime.now())
+                .fechaHora(NOW)
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(Mascota.builder().id(1L).build())
@@ -681,7 +789,7 @@ public class AppointmentServiceTest {
         new Cita();
         Cita cita2 = Cita.builder()
                 .id(2L)
-                .fechaHora(LocalDateTime.now().plusDays(31))
+                .fechaHora(NOW.plusDays(31))
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(Mascota.builder().id(1L).build())
@@ -711,7 +819,7 @@ public class AppointmentServiceTest {
         new Cita();
         Cita cita1 = Cita.builder()
                 .id(1L)
-                .fechaHora(LocalDateTime.now())
+                .fechaHora(NOW)
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(new Mascota())
@@ -721,7 +829,7 @@ public class AppointmentServiceTest {
         new Cita();
         Cita cita2 = Cita.builder()
                 .id(2L)
-                .fechaHora(LocalDateTime.now().plusDays(31))
+                .fechaHora(NOW.plusDays(31))
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(new Mascota())
@@ -748,13 +856,13 @@ public class AppointmentServiceTest {
 
     @Test
     public void getCitas_withDate(){
-        LocalDateTime inicio = LocalDateTime.now().minusDays(1);
-        LocalDateTime fin = LocalDateTime.now().plusDays(1);
+        LocalDateTime inicio = NOW.minusDays(1);
+        LocalDateTime fin = NOW.plusDays(1);
         new Usuario();
         new Cita();
         Cita cita = Cita.builder()
                 .id(1L)
-                .fechaHora(LocalDateTime.now())
+                .fechaHora(NOW)
                 .estado(AppointmentStatus.AGENDADA)
                 .motivo("someMotive")
                 .mascota(new Mascota())

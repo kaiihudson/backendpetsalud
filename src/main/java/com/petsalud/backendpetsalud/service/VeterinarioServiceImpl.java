@@ -8,7 +8,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Objects;
 
 @Service
@@ -41,7 +41,7 @@ public class VeterinarioServiceImpl implements VeterinarioService{
     }
 
     @Override
-    public VeterinarioDto setTurno(Long id, LocalDateTime inicio, LocalDateTime fim, String username) {
+    public VeterinarioDto setTurno(Long id, LocalTime inicio, LocalTime fim, String username) {
         if(!validateVeterinario(username, id)){
             throw new IllegalArgumentException("Veterinario no valido");
         }

@@ -159,7 +159,7 @@ public class UserControllerTest {
                 "someAddress"
         );
         when(usuarioService.registrarUsuario(any())).thenReturn(new Usuario());
-        mockMvc.perform(post("/api/usuarios/admin")
+        mockMvc.perform(post("/api/usuarios/registro/admin")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(usuarioRequest)))
                 .andExpect(status().isCreated())
@@ -179,7 +179,7 @@ public class UserControllerTest {
                 "someAddress"
         );
         when(usuarioService.registrarUsuario(any())).thenReturn(new Usuario());
-        mockMvc.perform(post("/api/usuarios/admin")
+        mockMvc.perform(post("/api/usuarios/registro/admin")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(usuarioRequest)))
                 .andExpect(status().isForbidden());
@@ -187,7 +187,7 @@ public class UserControllerTest {
     }
     @Test
     @WithMockUser(roles = "ADMIN")
-    public void createUser_withInvalidPassword_atAdminMethod_returnsNewUser() throws Exception {
+    public void createUser_withInvalidPassword_atAdminMethod_returns400() throws Exception {
         UsuarioRequest usuarioRequest = new UsuarioRequest(
                 "someEmail",
                 "",
@@ -199,7 +199,7 @@ public class UserControllerTest {
         );
         when(usuarioService.registrarUsuario(any())).thenReturn(new Usuario());
 
-        mockMvc.perform(post("/api/usuarios/admin")
+        mockMvc.perform(post("/api/usuarios/registro/admin")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(usuarioRequest)))
                 .andExpect(status().is4xxClientError());
@@ -220,7 +220,7 @@ public class UserControllerTest {
         );
         when(usuarioService.registrarUsuario(any())).thenReturn(new Usuario());
 
-        mockMvc.perform(post("/api/usuarios/admin")
+        mockMvc.perform(post("/api/usuarios/registro/admin")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(usuarioRequest)))
                 .andExpect(status().is4xxClientError());

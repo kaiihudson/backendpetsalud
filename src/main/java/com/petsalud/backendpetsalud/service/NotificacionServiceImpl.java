@@ -8,6 +8,7 @@ import com.petsalud.backendpetsalud.service.NotificacionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -15,11 +16,17 @@ import java.util.Optional;
 @Service
 public class NotificacionServiceImpl implements NotificacionService {
 
-    @Autowired
-    private NotificacionRepository notificacionRepository;
+    private final NotificacionRepository notificacionRepository;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
+
+    private final Clock clock;
+
+    public NotificacionServiceImpl(NotificacionRepository notificacionRepository, UsuarioRepository usuarioRepository, Clock clock) {
+        this.notificacionRepository = notificacionRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.clock = clock;
+    }
 
     @Override
     public Notificacion enviarNotificacion(Long usuarioId, Notificacion notificacion) {
@@ -27,7 +34,7 @@ public class NotificacionServiceImpl implements NotificacionService {
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado"));
 
         notificacion.setUsuario(usuario);
-        notificacion.setFecha(LocalDateTime.now());
+        notificacion.setFecha(LocalDateTime.now(clock));
         notificacion.setLeida(false);
 
         return notificacionRepository.save(notificacion);

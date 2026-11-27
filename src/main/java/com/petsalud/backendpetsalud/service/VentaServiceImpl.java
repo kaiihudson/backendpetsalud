@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -22,14 +23,20 @@ import java.util.Optional;
 @Service
 public class VentaServiceImpl implements VentaService {
 
-    @Autowired
-    private VentaRepository ventaRepository;
+    private final VentaRepository ventaRepository;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
 
-    @Autowired
-    private ProductoRepository productoRepository;
+    private final ProductoRepository productoRepository;
+
+    private final Clock clock;
+
+    public VentaServiceImpl(VentaRepository ventaRepository, UsuarioRepository usuarioRepository, ProductoRepository productoRepository, Clock clock) {
+        this.ventaRepository = ventaRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.productoRepository = productoRepository;
+        this.clock = clock;
+    }
 
     private VentaDTO translateVentaDTO(Venta venta){
         Usuario usuario = venta.getUsuario();
@@ -100,7 +107,7 @@ public class VentaServiceImpl implements VentaService {
                 .usuario(usuario)
                 .productos(productos)
                 .total(total)
-                .fecha(LocalDateTime.now())
+                .fecha(LocalDateTime.now(clock))
                 .build();
 
         Venta ventaRealizada = ventaRepository.save(venta);

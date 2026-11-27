@@ -10,6 +10,7 @@ import com.petsalud.backendpetsalud.service.ExpedienteMedicoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -17,14 +18,20 @@ import java.util.Optional;
 @Service
 public class ExpedienteMedicoServiceImpl implements ExpedienteMedicoService {
 
-    @Autowired
-    private ExpedienteMedicoRepository expedienteMedicoRepository;
+    private final ExpedienteMedicoRepository expedienteMedicoRepository;
 
-    @Autowired
-    private MascotaRepository mascotaRepository;
+    private final MascotaRepository mascotaRepository;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
+
+    private final Clock clock;
+
+    public ExpedienteMedicoServiceImpl(ExpedienteMedicoRepository expedienteMedicoRepository, MascotaRepository mascotaRepository, UsuarioRepository usuarioRepository, Clock clock) {
+        this.expedienteMedicoRepository = expedienteMedicoRepository;
+        this.mascotaRepository = mascotaRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.clock = clock;
+    }
 
     @Override
     public ExpedienteMedico agregarRegistro(Long mascotaId, Long veterinarioId, ExpedienteMedico registro) {
@@ -36,7 +43,7 @@ public class ExpedienteMedicoServiceImpl implements ExpedienteMedicoService {
 
         registro.setMascota(mascota);
         registro.setVeterinario(veterinario);
-        registro.setFecha(LocalDateTime.now());
+        registro.setFecha(LocalDateTime.now(clock));
 
         return expedienteMedicoRepository.save(registro);
     }

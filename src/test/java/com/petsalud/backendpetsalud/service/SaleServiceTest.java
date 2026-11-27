@@ -8,6 +8,7 @@ import com.petsalud.backendpetsalud.entity.Venta;
 import com.petsalud.backendpetsalud.repository.ProductoRepository;
 import com.petsalud.backendpetsalud.repository.UsuarioRepository;
 import com.petsalud.backendpetsalud.repository.VentaRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -15,6 +16,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.Clock;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 import static java.time.LocalDateTime.now;
@@ -31,9 +35,22 @@ public class SaleServiceTest {
     private UsuarioRepository usuarioRepository;
     @Mock
     private VentaRepository ventaRepository;
-    @InjectMocks
+
     private VentaServiceImpl ventaService;
 
+    private static final ZoneId ZONE = ZoneId.of("America/Santiago");
+    private static final LocalDateTime NOW = LocalDateTime.of(2026, 6, 6, 13, 0);
+    private static final Clock FIXED_CLOCK = Clock.fixed(NOW.atZone(ZONE).toInstant(), ZONE);
+
+    @BeforeEach
+    void setUp(){
+        ventaService = new VentaServiceImpl(
+                ventaRepository,
+                usuarioRepository,
+                productoRepository,
+                FIXED_CLOCK
+        );
+    }
 
     // validate that the user in the sale has
     // minimal info: email, password, name, last name, address

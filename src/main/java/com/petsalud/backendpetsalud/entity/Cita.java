@@ -35,4 +35,8 @@ public class Cita {
     @ManyToOne
     @JoinColumn(name = "veterinario_id")
     private Usuario veterinario;
+
+    @OneToOne
+    @JoinColumn(name="n_atencion")
+    private Atencion atencion;
 }
